@@ -1,5 +1,3 @@
-use core::num;
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Flank {
     Left,
@@ -115,7 +113,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
     fn _get_actual_repeat_length(&self, crispr: &mut Crispr<S>) {
         let mut first_repeat_start_index = *crispr.indices.first().unwrap();
         let mut last_repeat_start_index = *crispr.indices.last().unwrap();
-        let mut shortest_repeat_spacing = crispr
+        let shortest_repeat_spacing = crispr
             .indices
             .iter()
             .zip(&crispr.indices[1..])
@@ -128,7 +126,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         let mut char_counts = vec![0; u8::MAX as usize];
 
         let mut right_extension_length = self.parameters.search_window_length;
-        let mut max_right_extension_length =
+        let max_right_extension_length =
             shortest_repeat_spacing - self.parameters.min_spacer_length;
 
         while right_extension_length <= max_right_extension_length {
@@ -161,7 +159,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         char_counts.fill(0);
 
         let mut left_extension_length = 0;
-        let mut max_left_extension_length =
+        let max_left_extension_length =
             shortest_repeat_spacing - self.parameters.min_spacer_length - right_extension_length;
         while left_extension_length <= max_left_extension_length {
             if first_repeat_start_index < left_extension_length {
@@ -220,13 +218,8 @@ impl<S: AsRef<str>> CrisprIterator<S> {
                 }
                 i += 1;
             }
-            if Self::_similarity(crispr.repeat(i), crispr.spacer(i))
-                > Self::SPACER_TO_SPACER_MAX_SIMILARITY
-            {
-                false
-            } else {
-                true
-            }
+            Self::_similarity(crispr.repeat(i), crispr.spacer(i))
+                <= Self::SPACER_TO_SPACER_MAX_SIMILARITY
         } else if crispr.indices.len() == 2 {
             if first_spacer.is_empty() {
                 false
@@ -353,14 +346,11 @@ impl<S: AsRef<str>> CrisprIterator<S> {
             array.push(Self::_hamming(repeat_string, candidate_repeat_string));
         }
 
-        let new_candidate_repeat_index = begin
-            + (0..array.len())
-                .into_iter()
-                .min_by_key(|&i| array[i])
-                .unwrap();
+        let new_candidate_repeat_index =
+            begin + (0..array.len()).min_by_key(|&i| array[i]).unwrap();
         let new_candidate_repeat_string =
             &seq[new_candidate_repeat_index..new_candidate_repeat_index + repeat_length];
-        if Self::_similarity(repeat_string, &new_candidate_repeat_string) >= confidence {
+        if Self::_similarity(repeat_string, new_candidate_repeat_string) >= confidence {
             Some(new_candidate_repeat_index)
         } else {
             None
@@ -369,8 +359,6 @@ impl<S: AsRef<str>> CrisprIterator<S> {
 
     fn _trim(&self, crispr: &mut Crispr<S>) {
         let num_repeats = crispr.indices.len();
-        let left = crispr.start();
-        let right = crispr.end();
 
         let mut char_counts = vec![0u32; u8::MAX as usize];
         while num_repeats > self.parameters.min_repeat_length + 1 {
@@ -432,7 +420,7 @@ impl<S: AsRef<str> + Clone> Iterator for CrisprIterator<S> {
         while self.j <= search_end {
             let mut candidate_crispr = Crispr::new(self.sequence.clone());
 
-            let mut begin_search =
+            let begin_search =
                 self.j + self.parameters.min_repeat_length + self.parameters.min_spacer_length;
             let mut end_search = self.j
                 + self.parameters.max_repeat_length
@@ -456,16 +444,14 @@ impl<S: AsRef<str> + Clone> Iterator for CrisprIterator<S> {
                 let actual_repeat_length = candidate_crispr.repeat_length;
                 if (actual_repeat_length >= self.parameters.min_repeat_length)
                     && (actual_repeat_length <= self.parameters.max_repeat_length)
+                    && self._has_non_repeating_spacers(&candidate_crispr)
+                    && self._has_similarly_sized_spacers(&candidate_crispr)
                 {
-                    if self._has_non_repeating_spacers(&candidate_crispr) {
-                        if self._has_similarly_sized_spacers(&candidate_crispr) {
-                            self._check_flank(&mut candidate_crispr, Flank::Left, 30, 0.7);
-                            self._check_flank(&mut candidate_crispr, Flank::Right, 30, 0.7);
-                            self._trim(&mut candidate_crispr);
-                            self.j = candidate_crispr.end();
-                            return Some(candidate_crispr);
-                        }
-                    }
+                    self._check_flank(&mut candidate_crispr, Flank::Left, 30, 0.7);
+                    self._check_flank(&mut candidate_crispr, Flank::Right, 30, 0.7);
+                    self._trim(&mut candidate_crispr);
+                    self.j = candidate_crispr.end();
+                    return Some(candidate_crispr);
                 }
             }
 
@@ -484,11 +470,11 @@ pub struct Crispr<S> {
 }
 
 impl<S> Crispr<S> {
-    fn start(&self) -> usize {
+    pub fn start(&self) -> usize {
         self.indices.first().cloned().unwrap_or(0)
     }
 
-    fn end(&self) -> usize {
+    pub fn end(&self) -> usize {
         self.indices.last().cloned().unwrap_or(0) + self.repeat_length
     }
 }
@@ -502,18 +488,18 @@ impl<S: AsRef<str>> Crispr<S> {
         }
     }
 
-    fn region(&self) -> &str {
+    pub fn region(&self) -> &str {
         &self.sequence.as_ref()[self.start()..self.end()]
     }
 
-    fn repeat(&self, index: usize) -> &str {
+    pub fn repeat(&self, index: usize) -> &str {
         let s = self.sequence.as_ref();
         let start = self.indices[index];
         let end = start + self.repeat_length;
         &s[start..end]
     }
 
-    fn spacer(&self, index: usize) -> &str {
+    pub fn spacer(&self, index: usize) -> &str {
         let s = self.sequence.as_ref();
         let current_end = self.indices[index] + self.repeat_length;
         let next_start = self.indices[index + 1];
@@ -523,7 +509,7 @@ impl<S: AsRef<str>> Crispr<S> {
         &s[spacer_start..spacer_end]
     }
 
-    fn repeat_spacing(&self, pos1: usize, pos2: usize) -> usize {
+    pub fn repeat_spacing(&self, pos1: usize, pos2: usize) -> usize {
         self.indices[pos1].abs_diff(self.indices[pos2])
     }
 }
@@ -534,7 +520,7 @@ mod tests {
 
     #[test]
     fn find_crisprs() {
-        const SEQ: &'static str = concat!(
+        const SEQ: &str = concat!(
             "TTTTACAATCTGCGTTTTAACTCCACACGGTACATTAGAAACCATCTGCAACATATT",
             "CAAGTTCAGCTTCAAAACCTTGTTTTAACTCCACACGGTACATTAGAAACTTCGTCA",
             "AGCTTTACCTCAAAAGTCCTCTCAAACCTGTTTTAACTCCACACGGTACATTAGAAA",
