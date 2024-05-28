@@ -1,7 +1,5 @@
-use seq_io::fasta::Record;
-
 extern crate mincer;
-extern crate seq_io;
+extern crate noodles_fasta;
 
 fn main() -> std::io::Result<()> {
     let crispr_scanner = mincer::Scanner::default();
@@ -10,14 +8,15 @@ fn main() -> std::io::Result<()> {
         std::io::ErrorKind::InvalidInput,
         "Missing required path",
     ))?;
-    let reader = std::fs::File::open(&path)
-        .map(seq_io::fasta::Reader::new)
+    let mut reader = std::fs::File::open(&path)
+        .map(std::io::BufReader::new)
+        .map(noodles_fasta::Reader::new)
         .unwrap();
-    for result in reader.into_records() {
+    for result in reader.records() {
         let record = result.unwrap();
 
-        let id = record.id().unwrap();
-        let seq = std::str::from_utf8(record.seq()).unwrap();
+        let id = std::str::from_utf8(record.name()).unwrap();
+        let seq = std::str::from_utf8(record.sequence().as_ref()).unwrap();
 
         for (i, crispr) in crispr_scanner.scan(seq).enumerate() {
             if i == 0 {

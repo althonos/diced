@@ -21,4 +21,5 @@ optional = true
 default = ["memchr"]
 
 [dev-dependencies]
-seq_io = "0.3.2"
+noodles-gff = "0.33.0"
+noodles-fasta = "0.38.0"
