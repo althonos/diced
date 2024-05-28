@@ -1,3 +1,6 @@
+#[cfg(feature = "memchr")]
+extern crate memchr;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Flank {
     Left,
@@ -90,6 +93,9 @@ impl<S: AsRef<str>> ScannerIterator<S> {
         let pattern_len = pattern.len();
         let sequence_len = seq.len();
 
+        #[cfg(feature = "memchr")]
+        let finder = memchr::memmem::Finder::new(pattern);
+
         let mut last_repeat_index = crispr.indices[num_repeats - 1];
         let mut second_to_last_repeat_index = crispr.indices[num_repeats - 2];
         let mut repeat_spacing = last_repeat_index - second_to_last_repeat_index;
@@ -111,7 +117,14 @@ impl<S: AsRef<str>> ScannerIterator<S> {
                 break;
             }
 
-            if let Some(k) = seq[begin_search..end_search].find(pattern) {
+            let subseq = &seq[begin_search..end_search];
+
+            #[cfg(feature = "memchr")]
+            let pos = finder.find(subseq.as_bytes());
+            #[cfg(not(feature = "memchr"))]
+            let pos = subseq.find(pattern);
+
+            if let Some(k) = pos {
                 crispr.indices.push(begin_search + k);
                 second_to_last_repeat_index = last_repeat_index;
                 last_repeat_index = begin_search + k;
@@ -449,7 +462,14 @@ impl<S: AsRef<str> + Clone> Iterator for ScannerIterator<S> {
             }
 
             let pattern = &seq[self.j..self.j + self.parameters.search_window_length];
-            if let Some(k) = seq[begin_search..end_search].find(pattern) {
+            let subseq = &seq[begin_search..end_search];
+
+            #[cfg(feature = "memchr")]
+            let pos = memchr::memmem::find(subseq.as_bytes(), pattern.as_bytes());
+            #[cfg(not(feature = "memchr"))]
+            let pos = subseq.find(pattern);
+
+            if let Some(k) = pos {
                 candidate_crispr.indices.push(self.j);
                 candidate_crispr.indices.push(begin_search + k);
                 self._scan_right(&mut candidate_crispr, pattern, 24);
