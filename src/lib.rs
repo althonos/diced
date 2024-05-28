@@ -7,7 +7,7 @@ enum Flank {
     Right,
 }
 
-/// The MinCED scanner for identifying CRISPR regions in nucleotide sequences.
+/// A builder type to parameterize a [`Scanner`].
 #[derive(Clone)]
 pub struct ScannerBuilder {
     min_repeat_count: usize,
@@ -33,14 +33,9 @@ impl ScannerBuilder {
     /// a cheap [`Clone`], and avoid passing a [`String`].
     ///
     pub fn scan<S: AsRef<str> + Clone>(&self, sequence: S) -> Scanner<S> {
-        let sequence_length = sequence.as_ref().len();
-        let parameters = self.clone();
-        Scanner {
-            sequence,
-            sequence_length,
-            parameters,
-            j: 0,
-        }
+        let mut scanner = Scanner::new(sequence);
+        self.clone_into(&mut scanner.parameters);
+        scanner
     }
 
     pub fn min_repeat_count(&mut self, min_repeat_count: usize) -> &mut Self {
@@ -82,12 +77,27 @@ impl Default for ScannerBuilder {
     }
 }
 
-/// An iterator over all CRISPR regions in a sequence.
+/// A scanner for identifying CRISPR regions in a nucleotide sequence.
 pub struct Scanner<S> {
     parameters: ScannerBuilder,
     sequence: S,
     sequence_length: usize,
     j: usize,
+}
+
+impl<S: AsRef<str>> Scanner<S> {
+    pub fn new(sequence: S) -> Self {
+        Self {
+            parameters: ScannerBuilder::default(),
+            sequence_length: sequence.as_ref().len(),
+            j: 0,
+            sequence,
+        }
+    }
+
+    pub fn sequence(&self) -> &S {
+        &self.sequence
+    }
 }
 
 impl<S: AsRef<str>> Scanner<S> {
