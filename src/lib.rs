@@ -1,6 +1,8 @@
 #[cfg(feature = "memchr")]
 extern crate memchr;
 
+use std::ops::Deref;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Flank {
     Left,
@@ -100,18 +102,22 @@ impl<S: AsRef<str>> Scanner<S> {
     }
 }
 
-impl<S: AsRef<str>> Scanner<S> {
+impl<S: AsRef<str> + Clone> Scanner<S> {
     const THRESHOLD: f32 = 0.75;
     const SPACER_TO_SPACER_MAX_SIMILARITY: f32 = 0.62;
     const SPACER_TO_SPACER_LENGTH_DIFF: usize = 12;
     const SPACER_TO_REPEAT_LENGTH_DIFF: usize = 30;
 
-    fn _similarity(s1: &str, s2: &str) -> f32 {
+    fn _similarity<S1: AsRef<str>, S2: AsRef<str>>(s1: S1, s2: S2) -> f32 {
+        let s1 = s1.as_ref();
+        let s2 = s2.as_ref();
         let max_len = s1.len().max(s2.len());
         1.0 - ((strsim::levenshtein(s1, s2) as f32) / (max_len as f32))
     }
 
-    fn _hamming(s1: &str, s2: &str) -> usize {
+    fn _hamming<S1: AsRef<str>, S2: AsRef<str>>(s1: S1, s2: S2) -> usize {
+        let s1 = s1.as_ref();
+        let s2 = s2.as_ref();
         if s1.len() == s2.len() {
             strsim::hamming(s1, s2).unwrap()
         } else {
@@ -270,12 +276,12 @@ impl<S: AsRef<str>> Scanner<S> {
                 let current_spacer = crispr.spacer(i);
                 let next_spacer = crispr.spacer(i + 1);
                 let current_repeat = crispr.repeat(i);
-                if Self::_similarity(current_spacer, next_spacer)
+                if Self::_similarity(&current_spacer, &next_spacer)
                     > Self::SPACER_TO_SPACER_MAX_SIMILARITY
                 {
                     return false;
                 }
-                if Self::_similarity(current_repeat, current_spacer)
+                if Self::_similarity(&current_repeat, &current_spacer)
                     > Self::SPACER_TO_SPACER_MAX_SIMILARITY
                 {
                     return false;
@@ -407,14 +413,14 @@ impl<S: AsRef<str>> Scanner<S> {
         let mut array = Vec::new();
         for i in begin..=end {
             let candidate_repeat_string = &seq[i..i + repeat_length];
-            array.push(Self::_hamming(repeat_string, candidate_repeat_string));
+            array.push(Self::_hamming(&repeat_string, candidate_repeat_string));
         }
 
         let new_candidate_repeat_index =
             begin + (0..array.len()).min_by_key(|&i| array[i]).unwrap();
         let new_candidate_repeat_string =
             &seq[new_candidate_repeat_index..new_candidate_repeat_index + repeat_length];
-        if Self::_similarity(repeat_string, new_candidate_repeat_string) >= confidence {
+        if Self::_similarity(&repeat_string, new_candidate_repeat_string) >= confidence {
             Some(new_candidate_repeat_index)
         } else {
             None
@@ -427,8 +433,8 @@ impl<S: AsRef<str>> Scanner<S> {
         let mut char_counts = vec![0u32; u8::MAX as usize];
         while num_repeats > self.parameters.min_repeat_length + 1 {
             for k in 0..num_repeats {
-                let repeat = crispr.repeat(k).as_bytes();
-                let last_char = repeat[repeat.len() - 1];
+                let repeat = crispr.repeat(k);
+                let last_char = repeat.as_bytes()[repeat.len() - 1];
                 char_counts[last_char as usize] += 1;
             }
             if char_counts
@@ -445,8 +451,8 @@ impl<S: AsRef<str>> Scanner<S> {
         char_counts.fill(0);
         while num_repeats > self.parameters.min_repeat_length + 1 {
             for k in 0..num_repeats {
-                let repeat = crispr.repeat(k).as_bytes();
-                let first_char = repeat[0];
+                let repeat = crispr.repeat(k);
+                let first_char = repeat.as_bytes()[0];
                 char_counts[first_char as usize] += 1;
             }
             if char_counts
@@ -533,6 +539,60 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
     }
 }
 
+#[derive(Debug)]
+pub struct SequenceRange<S> {
+    sequence: S,
+    start: usize,
+    end: usize,
+}
+
+impl<S> SequenceRange<S> {
+    pub fn new(sequence: S, start: usize, end: usize) -> Self {
+        Self {
+            sequence,
+            start,
+            end,
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.start >= self.end
+    }
+
+    pub fn len(&self) -> usize {
+        self.end - self.start
+    }
+}
+
+impl<S: AsRef<str>> SequenceRange<S> {
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        self.as_ref().as_bytes()
+    }
+}
+
+impl<S: AsRef<str>> AsRef<str> for SequenceRange<S> {
+    fn as_ref(&self) -> &str {
+        &self.sequence.as_ref()[self.start..self.end]
+    }
+}
+
+// impl<S: AsRef<str>> Deref for SequenceRange<S> {
+//     type Target = str;
+//     fn deref(&self) -> &Self::Target {
+//         self.as_ref()
+//     }
+// }
+
+impl<S: AsRef<str>> PartialEq<&str> for SequenceRange<S> {
+    fn eq(&self, other: &&str) -> bool {
+        self.as_ref() == *other
+    }
+}
+
 /// A CRISPR region.
 #[derive(Debug, Clone)]
 pub struct Region<S> {
@@ -575,30 +635,29 @@ impl<S: AsRef<str>> Region<S> {
     pub fn region(&self) -> &str {
         &self.sequence.as_ref()[self.start()..self.end()]
     }
+}
 
+impl<S: AsRef<str> + Clone> Region<S> {
     /// Get the sequence of the `k`-th repeat in the CRISPR region.
     ///
     /// # Panic
     /// Panics if `k >= self.len()`.
-    pub fn repeat(&self, index: usize) -> &str {
-        let s = self.sequence.as_ref();
+    pub fn repeat(&self, index: usize) -> SequenceRange<S> {
         let start = self.indices[index];
         let end = start + self.repeat_length;
-        &s[start..end]
+        SequenceRange::new(self.sequence.clone(), start, end)
     }
 
     /// Get the sequence of the `k`-th repeat in the CRISPR region.
     ///
     /// # Panic
     /// Panics if `k + 1 >= self.len()`.
-    pub fn spacer(&self, index: usize) -> &str {
-        let s = self.sequence.as_ref();
+    pub fn spacer(&self, index: usize) -> SequenceRange<S> {
         let current_end = self.indices[index] + self.repeat_length;
         let next_start = self.indices[index + 1];
-        // let spacer_start = current_end + 1;
         let spacer_start = current_end;
         let spacer_end = next_start;
-        &s[spacer_start..spacer_end]
+        SequenceRange::new(self.sequence.clone(), spacer_start, spacer_end)
     }
 
     /// Compute the spacing the `k`-th and `k+1`-th repeats.
@@ -635,7 +694,7 @@ mod tests {
         assert_eq!(crisprs[0].end(), 305);
 
         let region = crisprs[0].region();
-        assert!(region.starts_with(crisprs[0].repeat(0)),);
-        assert!(region.ends_with(crisprs[0].repeat(4)),);
+        assert!(region.starts_with(crisprs[0].repeat(0).as_ref()),);
+        assert!(region.ends_with(crisprs[0].repeat(4).as_ref()),);
     }
 }

@@ -31,7 +31,7 @@ fn main() -> std::io::Result<()> {
                 crispr.end(),
                 crispr.len(),
                 i + 1,
-                crispr.repeat(1),
+                crispr.repeat(1).as_ref(),
             );
         }
     }
