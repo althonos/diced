@@ -42,7 +42,7 @@ impl Default for CrisprFinder {
     }
 }
 
-struct CrisprIterator<S> {
+pub struct CrisprIterator<S> {
     parameters: CrisprFinder,
     sequence: S,
     sequence_length: usize,
@@ -164,8 +164,8 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         let mut max_left_extension_length =
             shortest_repeat_spacing - self.parameters.min_spacer_length - right_extension_length;
         while left_extension_length <= max_left_extension_length {
-            if first_repeat_start_index - left_extension_length < 0 {
-                if crispr.indices.len() - 1 > self.parameters.min_repeat_count {
+            if first_repeat_start_index < left_extension_length {
+                if crispr.indices.len() > self.parameters.min_repeat_count + 1 {
                     crispr.indices.remove(0); // FIXME: use VecDeque?
                     first_repeat_start_index = *crispr.indices.first().unwrap();
                 } else {
@@ -297,7 +297,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
                 } else {
                     crispr.repeat_spacing(0, 1)
                 };
-                candidate_repeat_index = first_repeat_index - repeat_spacing;
+                candidate_repeat_index = first_repeat_index.checked_sub(repeat_spacing)?;
             }
             Flank::Right => {
                 repeat_string = crispr.repeat(num_repeats - 1);
@@ -315,8 +315,9 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         let mut begin = candidate_repeat_index - scan_range;
         let mut end = candidate_repeat_index + scan_range;
 
-        let scan_left_max_end =
-            first_repeat_index - repeat_length - self.parameters.min_spacer_length;
+        let scan_left_max_end = first_repeat_index
+            .checked_sub(repeat_length)?
+            .checked_sub(self.parameters.min_spacer_length)?;
         let scan_right_min_begin =
             last_repeat_index + repeat_length + self.parameters.min_spacer_length;
 
@@ -333,9 +334,9 @@ impl<S: AsRef<str>> CrisprIterator<S> {
             }
         }
 
-        if begin < 0 {
-            return None;
-        }
+        // if begin < 0 {
+        //     return None;
+        // }
         if begin + repeat_length > sequence_len {
             return None;
         }
@@ -476,7 +477,7 @@ impl<S: AsRef<str> + Clone> Iterator for CrisprIterator<S> {
 }
 
 #[derive(Debug)]
-struct Crispr<S> {
+pub struct Crispr<S> {
     sequence: S,
     indices: Vec<usize>,
     repeat_length: usize,
@@ -488,7 +489,7 @@ impl<S> Crispr<S> {
     }
 
     fn end(&self) -> usize {
-        self.indices.last().cloned().unwrap_or(0) + self.repeat_length - 1
+        self.indices.last().cloned().unwrap_or(0) + self.repeat_length
     }
 }
 
@@ -499,6 +500,10 @@ impl<S: AsRef<str>> Crispr<S> {
             indices: Vec::new(),
             repeat_length: 0,
         }
+    }
+
+    fn region(&self) -> &str {
+        &self.sequence.as_ref()[self.start()..self.end()]
     }
 
     fn repeat(&self, index: usize) -> &str {
@@ -523,39 +528,32 @@ impl<S: AsRef<str>> Crispr<S> {
     }
 }
 
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
 #[cfg(test)]
 mod tests {
-    use seq_io::fasta::Record;
-
     use super::*;
 
     #[test]
-    fn it_works() {
-        // let mut reader = std::fs::File::open("minced-java/t/Aquifex_aeolicus_VF5.fna")
-        let mut reader = std::fs::File::open("/tmp/big.fna")
-            .map(seq_io::fasta::Reader::new)
-            .unwrap();
+    fn find_crisprs() {
+        const SEQ: &'static str = concat!(
+            "TTTTACAATCTGCGTTTTAACTCCACACGGTACATTAGAAACCATCTGCAACATATT",
+            "CAAGTTCAGCTTCAAAACCTTGTTTTAACTCCACACGGTACATTAGAAACTTCGTCA",
+            "AGCTTTACCTCAAAAGTCCTCTCAAACCTGTTTTAACTCCACACGGTACATTAGAAA",
+            "CAATAATCAACAACTCTTTGATTTTGTGAAATGGAAGAAGTTTTAACTCCACACGGT",
+            "ACATTAGAAACAGAACTCTCAGAAGAACCGAGAGCTTTTTCTATTAACGTTTTAACT",
+            "CCACACGGTACATTAGAAACCCTGCGTGCCTGTGTCTAAAAAATA",
+        );
 
-        let record = reader.records().next().unwrap().unwrap();
-        let seq = std::str::from_utf8(record.seq()).unwrap();
-        let s = seq.to_string();
+        let it = CrisprFinder::default().find_crispr(SEQ);
+        let crisprs = it.collect::<Vec<_>>();
+        assert_eq!(crisprs.len(), 1);
 
-        for (i, crispr) in CrisprFinder::default().find_crispr(&seq).enumerate() {
-            println!(
-                "{}\t{}\t{}\t{}\t{}\t{}\t.\t.\tID=CRISPR{};rpt_type=direct;rpt_family=CRISPR;rpt_unit_seq={}",
-                record.id().unwrap(),
-                "minced:0.4.2", // "mincer:0.1.0",
-                "repeat_region",
-                crispr.start() + 1,
-                crispr.end() + 1,
-                crispr.indices.len(),
-                i+1,
-                crispr.repeat(1)
-            );
-        }
+        assert_eq!(crisprs[0].indices.len(), 5);
+        assert_eq!(crisprs[0].repeat(0), "GTTTTAACTCCACACGGTACATTAGAAAC");
+        assert_eq!(crisprs[0].start(), 13);
+        assert_eq!(crisprs[0].end(), 305);
+
+        let region = crisprs[0].region();
+        assert!(region.starts_with(crisprs[0].repeat(0)),);
+        assert!(region.ends_with(crisprs[0].repeat(4)),);
     }
 }
