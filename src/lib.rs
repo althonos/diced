@@ -682,18 +682,36 @@ impl<S: AsRef<str> + Clone> Crispr<S> {
 mod tests {
     use super::*;
 
+    use std::rc::Rc;
+
+    const SEQ: &str = concat!(
+        "TTTTACAATCTGCGTTTTAACTCCACACGGTACATTAGAAACCATCTGCAACATATT",
+        "CAAGTTCAGCTTCAAAACCTTGTTTTAACTCCACACGGTACATTAGAAACTTCGTCA",
+        "AGCTTTACCTCAAAAGTCCTCTCAAACCTGTTTTAACTCCACACGGTACATTAGAAA",
+        "CAATAATCAACAACTCTTTGATTTTGTGAAATGGAAGAAGTTTTAACTCCACACGGT",
+        "ACATTAGAAACAGAACTCTCAGAAGAACCGAGAGCTTTTTCTATTAACGTTTTAACT",
+        "CCACACGGTACATTAGAAACCCTGCGTGCCTGTGTCTAAAAAATA",
+    );
+
     #[test]
     fn scan_str() {
-        const SEQ: &str = concat!(
-            "TTTTACAATCTGCGTTTTAACTCCACACGGTACATTAGAAACCATCTGCAACATATT",
-            "CAAGTTCAGCTTCAAAACCTTGTTTTAACTCCACACGGTACATTAGAAACTTCGTCA",
-            "AGCTTTACCTCAAAAGTCCTCTCAAACCTGTTTTAACTCCACACGGTACATTAGAAA",
-            "CAATAATCAACAACTCTTTGATTTTGTGAAATGGAAGAAGTTTTAACTCCACACGGT",
-            "ACATTAGAAACAGAACTCTCAGAAGAACCGAGAGCTTTTTCTATTAACGTTTTAACT",
-            "CCACACGGTACATTAGAAACCCTGCGTGCCTGTGTCTAAAAAATA",
-        );
-
         let it = ScannerBuilder::default().scan(SEQ);
+        let crisprs = it.collect::<Vec<_>>();
+        assert_eq!(crisprs.len(), 1);
+
+        assert_eq!(crisprs[0].indices.len(), 5);
+        assert_eq!(crisprs[0].repeat(0), "GTTTTAACTCCACACGGTACATTAGAAAC");
+        assert_eq!(crisprs[0].start(), 13);
+        assert_eq!(crisprs[0].end(), 305);
+
+        let region = crisprs[0].region();
+        assert!(region.starts_with(crisprs[0].repeat(0).as_ref()),);
+        assert!(region.ends_with(crisprs[0].repeat(4).as_ref()),);
+    }
+
+    #[test]
+    fn scan_rc() {
+        let it = ScannerBuilder::default().scan(Rc::from(SEQ));
         let crisprs = it.collect::<Vec<_>>();
         assert_eq!(crisprs.len(), 1);
 
