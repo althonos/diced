@@ -143,7 +143,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
 
         loop {
             let candidate_repeat_index = last_repeat_index + repeat_spacing;
-            let mut begin_search = candidate_repeat_index - scan_range;
+            let mut begin_search = candidate_repeat_index.saturating_sub(scan_range);
             let mut end_search = candidate_repeat_index + pattern_len + scan_range;
 
             let scan_right_min_begin =
@@ -200,7 +200,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
 
         while right_extension_length <= max_right_extension_length {
             if last_repeat_start_index + right_extension_length >= sequence_len {
-                if crispr.indices.len() - 1 > self.parameters.min_repeat_count {
+                if crispr.indices.len() > self.parameters.min_repeat_count + 1 {
                     crispr.indices.pop().unwrap();
                     last_repeat_start_index = *crispr.indices.last().unwrap();
                 } else {
@@ -375,7 +375,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             }
         };
 
-        let mut begin = candidate_repeat_index - scan_range;
+        let mut begin = candidate_repeat_index.saturating_sub(scan_range);
         let mut end = candidate_repeat_index + scan_range;
 
         let scan_left_max_end = first_repeat_index
@@ -404,7 +404,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             return None;
         }
         if end + repeat_length > sequence_len {
-            end = sequence_len - repeat_length;
+            end = sequence_len.saturating_sub(repeat_length);
         }
         if begin >= end {
             return None;
@@ -482,27 +482,35 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
             .checked_sub(2 * self.parameters.search_window_length - 1)
             .unwrap_or(1);
 
-        let search_end = seq.len()
-            - self.parameters.max_repeat_length
-            - self.parameters.max_spacer_length
-            - self.parameters.search_window_length;
+        let search_end = seq
+            .len()
+            .saturating_sub(self.parameters.max_repeat_length)
+            .saturating_sub(self.parameters.max_spacer_length)
+            .saturating_sub(self.parameters.search_window_length);
 
         while self.j <= search_end {
             let mut candidate_crispr = Crispr::new(self.sequence.clone());
 
-            let begin_search =
+            let mut begin_search =
                 self.j + self.parameters.min_repeat_length + self.parameters.min_spacer_length;
             let mut end_search = self.j
                 + self.parameters.max_repeat_length
                 + self.parameters.max_spacer_length
                 + self.parameters.search_window_length;
+            if begin_search > self.sequence_length {
+                begin_search = self.sequence_length;
+            }
             if end_search > self.sequence_length {
                 end_search = self.sequence_length;
-            } else if end_search < begin_search {
+            }
+            if end_search < begin_search {
                 end_search = begin_search;
             }
 
-            let pattern = &seq[self.j..self.j + self.parameters.search_window_length];
+            let pattern_start = self.j;
+            let pattern_end = (self.j + self.parameters.search_window_length).min(seq.len());
+
+            let pattern = &seq[pattern_start..pattern_end];
             let subseq = &seq[begin_search..end_search];
 
             #[cfg(feature = "memchr")]
@@ -675,7 +683,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn scan() {
+    fn scan_str() {
         const SEQ: &str = concat!(
             "TTTTACAATCTGCGTTTTAACTCCACACGGTACATTAGAAACCATCTGCAACATATT",
             "CAAGTTCAGCTTCAAAACCTTGTTTTAACTCCACACGGTACATTAGAAACTTCGTCA",
@@ -697,5 +705,12 @@ mod tests {
         let region = crisprs[0].region();
         assert!(region.starts_with(crisprs[0].repeat(0).as_ref()),);
         assert!(region.ends_with(crisprs[0].repeat(4).as_ref()),);
+    }
+
+    #[test]
+    fn scan_empty() {
+        let it = ScannerBuilder::default().scan("");
+        let crisprs = it.collect::<Vec<_>>();
+        assert_eq!(crisprs.len(), 0);
     }
 }
