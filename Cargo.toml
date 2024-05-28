@@ -1,0 +1,18 @@
+[package]
+name = "mincer"
+version = "0.1.0"
+authors = ["Martin Larralde <martin.larralde@embl.de>"]
+edition = "2021"
+license = "GPL-3.0-or-later"
+description = "A Rust reimplementation of the MinCED algorithm for identifying CRISPRs in full or assembled genomes."
+repository = "https://github.com/althonos/mincer"
+homepage = "https://github.com/althonos/mincer"
+readme = "README.md"
+categories = ["science"]
+keywords = ["bioinformatics", "genomics", "repeat", "crispr"]
+
+[dependencies]
+strsim = "0.11"
+
+[dev-dependencies]
+seq_io = "0.3.2"
