@@ -1,0 +1,18 @@
+##gff-version 3
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_region	156459	156769	5	.	.	ID=CRISPR1;rpt_type=direct;rpt_family=CRISPR;rpt_unit_seq=GGTTCCTAATGTACCGTGTGGAGTTGAAACCT
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	156459	156490	1	.	.	Parent=CRISPR1;ID=DR.CRISPR1.1
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	156525	156556	1	.	.	Parent=CRISPR1;ID=DR.CRISPR1.2
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	156599	156630	1	.	.	Parent=CRISPR1;ID=DR.CRISPR1.3
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	156671	156702	1	.	.	Parent=CRISPR1;ID=DR.CRISPR1.4
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	156738	156769	1	.	.	Parent=CRISPR1;ID=DR.CRISPR1.5
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_region	1226626	1226861	4	.	.	ID=CRISPR2;rpt_type=direct;rpt_family=CRISPR;rpt_unit_seq=CGTTTCTAATGTACCGTAGAGGAGTTGAAAC
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1226626	1226656	1	.	.	Parent=CRISPR2;ID=DR.CRISPR2.1
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1226693	1226723	1	.	.	Parent=CRISPR2;ID=DR.CRISPR2.2
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1226760	1226790	1	.	.	Parent=CRISPR2;ID=DR.CRISPR2.3
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1226831	1226861	1	.	.	Parent=CRISPR2;ID=DR.CRISPR2.4
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_region	1379598	1379894	5	.	.	ID=CRISPR3;rpt_type=direct;rpt_family=CRISPR;rpt_unit_seq=GTTTCAACTCCACTACGGTACATTAGGAAC
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1379598	1379627	1	.	.	Parent=CRISPR3;ID=DR.CRISPR3.1
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1379666	1379695	1	.	.	Parent=CRISPR3;ID=DR.CRISPR3.2
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1379733	1379762	1	.	.	Parent=CRISPR3;ID=DR.CRISPR3.3
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1379799	1379828	1	.	.	Parent=CRISPR3;ID=DR.CRISPR3.4
+gi|15282445|ref|NC_000918.1|	minced:0.4.2	repeat_unit	1379865	1379894	1	.	.	Parent=CRISPR3;ID=DR.CRISPR3.5
