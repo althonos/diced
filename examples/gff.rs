@@ -2,7 +2,7 @@ extern crate mincer;
 extern crate noodles_fasta;
 
 fn main() -> std::io::Result<()> {
-    let crispr_scanner = mincer::Scanner::default();
+    let crispr_scanner = mincer::ScannerBuilder::default();
 
     let path = std::env::args().skip(1).next().ok_or(std::io::Error::new(
         std::io::ErrorKind::InvalidInput,

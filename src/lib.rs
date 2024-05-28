@@ -9,7 +9,7 @@ enum Flank {
 
 /// The MinCED scanner for identifying CRISPR regions in nucleotide sequences.
 #[derive(Clone)]
-pub struct Scanner {
+pub struct ScannerBuilder {
     min_repeat_count: usize,
     min_repeat_length: usize,
     max_repeat_length: usize,
@@ -18,7 +18,7 @@ pub struct Scanner {
     search_window_length: usize,
 }
 
-impl Scanner {
+impl ScannerBuilder {
     /// Create a new scanner with default parameters.
     pub fn new() -> Self {
         Self::default()
@@ -32,19 +32,44 @@ impl Scanner {
     /// will be cloned into the result [`Region`], so make sure it implements
     /// a cheap [`Clone`], and avoid passing a [`String`].
     ///
-    pub fn scan<S: AsRef<str> + Clone>(&self, sequence: S) -> ScannerIterator<S> {
+    pub fn scan<S: AsRef<str> + Clone>(&self, sequence: S) -> Scanner<S> {
         let sequence_length = sequence.as_ref().len();
         let parameters = self.clone();
-        ScannerIterator {
+        Scanner {
             sequence,
             sequence_length,
             parameters,
             j: 0,
         }
     }
+
+    pub fn min_repeat_count(&mut self, min_repeat_count: usize) -> &mut Self {
+        self.min_repeat_count = min_repeat_count;
+        self
+    }
+
+    pub fn min_repeat_length(&mut self, min_repeat_length: usize) -> &mut Self {
+        self.min_repeat_length = min_repeat_length;
+        self
+    }
+
+    pub fn max_repeat_length(&mut self, max_repeat_length: usize) -> &mut Self {
+        self.max_repeat_length = max_repeat_length;
+        self
+    }
+
+    pub fn min_spacer_length(&mut self, min_spacer_length: usize) -> &mut Self {
+        self.min_spacer_length = min_spacer_length;
+        self
+    }
+
+    pub fn max_spacer_length(&mut self, max_spacer_length: usize) -> &mut Self {
+        self.max_spacer_length = max_spacer_length;
+        self
+    }
 }
 
-impl Default for Scanner {
+impl Default for ScannerBuilder {
     fn default() -> Self {
         Self {
             min_repeat_count: 3,
@@ -58,14 +83,14 @@ impl Default for Scanner {
 }
 
 /// An iterator over all CRISPR regions in a sequence.
-pub struct ScannerIterator<S> {
-    parameters: Scanner,
+pub struct Scanner<S> {
+    parameters: ScannerBuilder,
     sequence: S,
     sequence_length: usize,
     j: usize,
 }
 
-impl<S: AsRef<str>> ScannerIterator<S> {
+impl<S: AsRef<str>> Scanner<S> {
     const THRESHOLD: f32 = 0.75;
     const SPACER_TO_SPACER_MAX_SIMILARITY: f32 = 0.62;
     const SPACER_TO_SPACER_LENGTH_DIFF: usize = 12;
@@ -430,7 +455,7 @@ impl<S: AsRef<str>> ScannerIterator<S> {
     }
 }
 
-impl<S: AsRef<str> + Clone> Iterator for ScannerIterator<S> {
+impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
     type Item = Region<S>;
     fn next(&mut self) -> Option<Self::Item> {
         let seq = self.sequence.as_ref();
@@ -580,7 +605,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn find_crisprs() {
+    fn scan() {
         const SEQ: &str = concat!(
             "TTTTACAATCTGCGTTTTAACTCCACACGGTACATTAGAAACCATCTGCAACATATT",
             "CAAGTTCAGCTTCAAAACCTTGTTTTAACTCCACACGGTACATTAGAAACTTCGTCA",
@@ -590,7 +615,7 @@ mod tests {
             "CCACACGGTACATTAGAAACCCTGCGTGCCTGTGTCTAAAAAATA",
         );
 
-        let it = Scanner::default().scan(SEQ);
+        let it = ScannerBuilder::default().scan(SEQ);
         let crisprs = it.collect::<Vec<_>>();
         assert_eq!(crisprs.len(), 1);
 
