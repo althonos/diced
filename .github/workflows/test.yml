@@ -79,10 +79,15 @@ jobs:
       with:
         path: target
         key: ${{ runner.os }}-cargo-stable
-    - name: Measure code coverage with ${{ matrix.feature }} feature
-      uses: actions-rs/tarpaulin@v0.1
+    - name: Install tarpaulin
+      uses: actions-rs/install@v0.1
       with:
-        version: '0.30.0'
+        crate: cargo-tarpaulin
+        version: latest
+    - name: Measure code coverage with ${{ matrix.feature }} feature
+      uses: actions-rs/cargo@v1
+      with:
+        command: tarpaulin
         args: '-v --out Xml --ciserver github-actions --no-default-features --features "${{ matrix.feature }}" -- --test-threads=1'
     - name: Upload coverage statistics
       uses: codecov/codecov-action@v4.0.1
