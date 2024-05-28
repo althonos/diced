@@ -15,6 +15,11 @@ pub struct CrisprFinder {
 }
 
 impl CrisprFinder {
+    /// Create a new CRISPR scanner with default parameters.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn find_crispr<S: AsRef<str>>(&self, sequence: S) -> CrisprIterator<S> {
         let sequence_length = sequence.as_ref().len();
         let parameters = self.clone();
@@ -40,6 +45,7 @@ impl Default for CrisprFinder {
     }
 }
 
+/// An iterator over all CRISPR regions in a sequence.
 pub struct CrisprIterator<S> {
     parameters: CrisprFinder,
     sequence: S,
@@ -286,20 +292,20 @@ impl<S: AsRef<str>> CrisprIterator<S> {
             Flank::Left => {
                 repeat_string = crispr.repeat(0);
                 let repeat_spacing = if num_repeats >= 3 {
-                    (crispr.repeat_spacing(0, 1) + crispr.repeat_spacing(1, 2)) / 2
+                    (crispr.repeat_spacing(0) + crispr.repeat_spacing(1)) / 2
                 } else {
-                    crispr.repeat_spacing(0, 1)
+                    crispr.repeat_spacing(0)
                 };
                 candidate_repeat_index = first_repeat_index.checked_sub(repeat_spacing)?;
             }
             Flank::Right => {
                 repeat_string = crispr.repeat(num_repeats - 1);
                 let repeat_spacing = if num_repeats >= 3 {
-                    (crispr.repeat_spacing(num_repeats - 2, num_repeats - 1)
-                        + crispr.repeat_spacing(num_repeats - 3, num_repeats - 2))
+                    (crispr.repeat_spacing(num_repeats - 2)
+                        + crispr.repeat_spacing(num_repeats - 3))
                         / 2
                 } else {
-                    crispr.repeat_spacing(num_repeats - 2, num_repeats - 1)
+                    crispr.repeat_spacing(num_repeats - 2)
                 };
                 candidate_repeat_index = last_repeat_index + repeat_spacing;
             }
@@ -462,7 +468,8 @@ impl<S: AsRef<str> + Clone> Iterator for CrisprIterator<S> {
     }
 }
 
-#[derive(Debug)]
+/// A CRISPR region.
+#[derive(Debug, Clone)]
 pub struct Crispr<S> {
     sequence: S,
     indices: Vec<usize>,
@@ -470,17 +477,28 @@ pub struct Crispr<S> {
 }
 
 impl<S> Crispr<S> {
+    /// Get the number of repeats in the CRISPR region.
+    pub fn len(&self) -> usize {
+        self.indices.len()
+    }
+
+    /// Get the start index of the CRISPR region (zero-based).
+    ///
+    /// This is returned as a zero-based, inclusive index, which can be
+    /// used for slicing.
     pub fn start(&self) -> usize {
         self.indices.first().cloned().unwrap_or(0)
     }
 
+    /// Get the end index of the CRISPR region (zero-based, exclusive).
     pub fn end(&self) -> usize {
         self.indices.last().cloned().unwrap_or(0) + self.repeat_length
     }
 }
 
 impl<S: AsRef<str>> Crispr<S> {
-    pub fn new(sequence: S) -> Self {
+    /// Create a new crispr region for the given sequence.
+    fn new(sequence: S) -> Self {
         Self {
             sequence,
             indices: Vec::new(),
@@ -488,10 +506,15 @@ impl<S: AsRef<str>> Crispr<S> {
         }
     }
 
+    /// Get the sequence of the complete CRISPR region.
     pub fn region(&self) -> &str {
         &self.sequence.as_ref()[self.start()..self.end()]
     }
 
+    /// Get the sequence of the `k`-th repeat in the CRISPR region.
+    ///
+    /// # Panic
+    /// Panics if `k >= self.len()`.
     pub fn repeat(&self, index: usize) -> &str {
         let s = self.sequence.as_ref();
         let start = self.indices[index];
@@ -499,6 +522,10 @@ impl<S: AsRef<str>> Crispr<S> {
         &s[start..end]
     }
 
+    /// Get the sequence of the `k`-th repeat in the CRISPR region.
+    ///
+    /// # Panic
+    /// Panics if `k + 1 >= self.len()`.
     pub fn spacer(&self, index: usize) -> &str {
         let s = self.sequence.as_ref();
         let current_end = self.indices[index] + self.repeat_length;
@@ -509,8 +536,12 @@ impl<S: AsRef<str>> Crispr<S> {
         &s[spacer_start..spacer_end]
     }
 
-    pub fn repeat_spacing(&self, pos1: usize, pos2: usize) -> usize {
-        self.indices[pos1].abs_diff(self.indices[pos2])
+    /// Compute the spacing the `k`-th and `k+1`-th repeats.
+    ///
+    /// # Panic
+    /// Panics if `k + 1 >= self.len()`.
+    pub fn repeat_spacing(&self, index: usize) -> usize {
+        self.indices[index + 1] - self.indices[index]
     }
 }
 
