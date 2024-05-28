@@ -4,8 +4,9 @@ enum Flank {
     Right,
 }
 
+/// The MinCED scanner for identifying CRISPR regions in nucleotide sequences.
 #[derive(Clone)]
-pub struct CrisprFinder {
+pub struct Scanner {
     min_repeat_count: usize,
     min_repeat_length: usize,
     max_repeat_length: usize,
@@ -14,16 +15,24 @@ pub struct CrisprFinder {
     search_window_length: usize,
 }
 
-impl CrisprFinder {
-    /// Create a new CRISPR scanner with default parameters.
+impl Scanner {
+    /// Create a new scanner with default parameters.
     pub fn new() -> Self {
         Self::default()
     }
 
-    pub fn find_crispr<S: AsRef<str>>(&self, sequence: S) -> CrisprIterator<S> {
+    /// Scan the provided sequence for CRISPR regions iteratively.
+    ///
+    /// The sequence can be provided as any string view that also implements
+    /// [`Clone`]. This allows several smart pointers to be passed (`&str`,
+    /// `Rc<str>`, `Arc<str>`, etc.). The actual `sequence` object however
+    /// will be cloned into the result [`Region`], so make sure it implements
+    /// a cheap [`Clone`], and avoid passing a [`String`].
+    ///
+    pub fn scan<S: AsRef<str> + Clone>(&self, sequence: S) -> ScannerIterator<S> {
         let sequence_length = sequence.as_ref().len();
         let parameters = self.clone();
-        CrisprIterator {
+        ScannerIterator {
             sequence,
             sequence_length,
             parameters,
@@ -32,7 +41,7 @@ impl CrisprFinder {
     }
 }
 
-impl Default for CrisprFinder {
+impl Default for Scanner {
     fn default() -> Self {
         Self {
             min_repeat_count: 3,
@@ -46,14 +55,14 @@ impl Default for CrisprFinder {
 }
 
 /// An iterator over all CRISPR regions in a sequence.
-pub struct CrisprIterator<S> {
-    parameters: CrisprFinder,
+pub struct ScannerIterator<S> {
+    parameters: Scanner,
     sequence: S,
     sequence_length: usize,
     j: usize,
 }
 
-impl<S: AsRef<str>> CrisprIterator<S> {
+impl<S: AsRef<str>> ScannerIterator<S> {
     const THRESHOLD: f32 = 0.75;
     const SPACER_TO_SPACER_MAX_SIMILARITY: f32 = 0.62;
     const SPACER_TO_SPACER_LENGTH_DIFF: usize = 12;
@@ -74,7 +83,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         }
     }
 
-    fn _scan_right(&self, crispr: &mut Crispr<S>, pattern: &str, scan_range: usize) {
+    fn _scan_right(&self, crispr: &mut Region<S>, pattern: &str, scan_range: usize) {
         let seq = crispr.sequence.as_ref();
 
         let num_repeats = crispr.indices.len();
@@ -116,7 +125,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         }
     }
 
-    fn _get_actual_repeat_length(&self, crispr: &mut Crispr<S>) {
+    fn _get_actual_repeat_length(&self, crispr: &mut Region<S>) {
         let mut first_repeat_start_index = *crispr.indices.first().unwrap();
         let mut last_repeat_start_index = *crispr.indices.last().unwrap();
         let shortest_repeat_spacing = crispr
@@ -181,9 +190,10 @@ impl<S: AsRef<str>> CrisprIterator<S> {
                 let first_char = seq.as_bytes()[current_repeat_start_index - left_extension_length];
                 char_counts[first_char as usize] += 1;
             }
-            if char_counts.iter().any(|&n| {
-                ((n as f32) / (crispr.indices.len() as f32)) >= CrisprIterator::<S>::THRESHOLD
-            }) {
+            if char_counts
+                .iter()
+                .any(|&n| ((n as f32) / (crispr.indices.len() as f32)) >= Self::THRESHOLD)
+            {
                 left_extension_length += 1;
                 char_counts.fill(0);
             } else {
@@ -199,7 +209,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         crispr.repeat_length = right_extension_length + left_extension_length;
     }
 
-    fn _has_non_repeating_spacers(&self, crispr: &Crispr<S>) -> bool {
+    fn _has_non_repeating_spacers(&self, crispr: &Region<S>) -> bool {
         let first_repeat = crispr.repeat(0);
         let first_spacer = crispr.spacer(0);
 
@@ -238,7 +248,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         }
     }
 
-    fn _has_similarly_sized_spacers(&self, crispr: &Crispr<S>) -> bool {
+    fn _has_similarly_sized_spacers(&self, crispr: &Region<S>) -> bool {
         let initial_spacer_length = crispr.spacer(0).len();
         let repeat_length = crispr.repeat_length;
         for i in 0..crispr.indices.len() - 1 {
@@ -257,7 +267,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
 
     fn _check_flank(
         &self,
-        crispr: &mut Crispr<S>,
+        crispr: &mut Region<S>,
         flank: Flank,
         scan_range: usize,
         confidence: f32,
@@ -272,7 +282,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
 
     fn _scan(
         &self,
-        crispr: &Crispr<S>,
+        crispr: &Region<S>,
         flank: Flank,
         scan_range: usize,
         confidence: f32,
@@ -363,7 +373,7 @@ impl<S: AsRef<str>> CrisprIterator<S> {
         }
     }
 
-    fn _trim(&self, crispr: &mut Crispr<S>) {
+    fn _trim(&self, crispr: &mut Region<S>) {
         let num_repeats = crispr.indices.len();
 
         let mut char_counts = vec![0u32; u8::MAX as usize];
@@ -407,8 +417,8 @@ impl<S: AsRef<str>> CrisprIterator<S> {
     }
 }
 
-impl<S: AsRef<str> + Clone> Iterator for CrisprIterator<S> {
-    type Item = Crispr<S>;
+impl<S: AsRef<str> + Clone> Iterator for ScannerIterator<S> {
+    type Item = Region<S>;
     fn next(&mut self) -> Option<Self::Item> {
         let seq = self.sequence.as_ref();
 
@@ -424,7 +434,7 @@ impl<S: AsRef<str> + Clone> Iterator for CrisprIterator<S> {
             - self.parameters.search_window_length;
 
         while self.j <= search_end {
-            let mut candidate_crispr = Crispr::new(self.sequence.clone());
+            let mut candidate_crispr = Region::new(self.sequence.clone());
 
             let begin_search =
                 self.j + self.parameters.min_repeat_length + self.parameters.min_spacer_length;
@@ -470,13 +480,13 @@ impl<S: AsRef<str> + Clone> Iterator for CrisprIterator<S> {
 
 /// A CRISPR region.
 #[derive(Debug, Clone)]
-pub struct Crispr<S> {
+pub struct Region<S> {
     sequence: S,
     indices: Vec<usize>,
     repeat_length: usize,
 }
 
-impl<S> Crispr<S> {
+impl<S> Region<S> {
     /// Get the number of repeats in the CRISPR region.
     pub fn len(&self) -> usize {
         self.indices.len()
@@ -496,7 +506,7 @@ impl<S> Crispr<S> {
     }
 }
 
-impl<S: AsRef<str>> Crispr<S> {
+impl<S: AsRef<str>> Region<S> {
     /// Create a new crispr region for the given sequence.
     fn new(sequence: S) -> Self {
         Self {
@@ -560,7 +570,7 @@ mod tests {
             "CCACACGGTACATTAGAAACCCTGCGTGCCTGTGTCTAAAAAATA",
         );
 
-        let it = CrisprFinder::default().find_crispr(SEQ);
+        let it = Scanner::default().scan(SEQ);
         let crisprs = it.collect::<Vec<_>>();
         assert_eq!(crisprs.len(), 1);
 
