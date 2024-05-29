@@ -360,7 +360,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                 } else {
                     crispr.repeat_spacing(0)
                 };
-                candidate_repeat_index = first_repeat_index.checked_sub(repeat_spacing)?;
+                candidate_repeat_index = first_repeat_index.saturating_sub(repeat_spacing);
             }
             Flank::Right => {
                 repeat_string = crispr.repeat(num_repeats - 1);
@@ -379,8 +379,8 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
         let mut end = candidate_repeat_index + scan_range;
 
         let scan_left_max_end = first_repeat_index
-            .checked_sub(repeat_length)?
-            .checked_sub(self.parameters.min_spacer_length)?;
+            .saturating_sub(repeat_length)
+            .saturating_sub(self.parameters.min_spacer_length);
         let scan_right_min_begin =
             last_repeat_index + repeat_length + self.parameters.min_spacer_length;
 
@@ -431,7 +431,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
         let num_repeats = crispr.indices.len();
 
         let mut char_counts = vec![0u32; u8::MAX as usize];
-        while num_repeats > self.parameters.min_repeat_length + 1 {
+        while crispr.repeat_length > self.parameters.min_repeat_length {
             for k in 0..num_repeats {
                 let repeat = crispr.repeat(k);
                 let last_char = repeat.as_bytes()[repeat.len() - 1];
@@ -449,7 +449,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
         }
 
         char_counts.fill(0);
-        while num_repeats > self.parameters.min_repeat_length + 1 {
+        while crispr.repeat_length > self.parameters.min_repeat_length {
             for k in 0..num_repeats {
                 let repeat = crispr.repeat(k);
                 let first_char = repeat.as_bytes()[0];
