@@ -8,7 +8,7 @@ fn test(builder: &mincer::ScannerBuilder, gff_path: &str) {
     let record = reader.records().next().unwrap().unwrap();
     let seq = std::str::from_utf8(record.sequence().as_ref()).unwrap();
 
-    let regions = builder.scan(seq).collect::<Vec<_>>();
+    let crisprs = builder.scan(seq).collect::<Vec<_>>();
 
     let gff = std::fs::File::open(gff_path)
         .map(std::io::BufReader::new)
@@ -22,35 +22,34 @@ fn test(builder: &mincer::ScannerBuilder, gff_path: &str) {
         .iter()
         .filter(|record| record.ty() == "repeat_region")
         .collect::<Vec<_>>();
-
-    assert_eq!(regions.len(), repeat_regions.len());
-    for (actual_region, expected_region) in regions.iter().zip(repeat_regions) {
-        // println!();
-        // for repeat in 0..actual_region.len() {
-        //     println!("{}", actual_region.repeat(1).as_str());
-        // }
-
+    assert_eq!(crisprs.len(), repeat_regions.len());
+    for (actual_region, expected_region) in crisprs.iter().zip(repeat_regions) {
+        assert_eq!(actual_region.start() + 1, expected_region.start().get());
+        assert_eq!(actual_region.end(), expected_region.end().get());
         assert_eq!(
             actual_region.len(),
             expected_region.score().unwrap_or(0.0) as usize
         );
-
-        assert_eq!(
-            actual_region.start() + 1,
-            expected_region.start().get(),
-            "start coordinates differ"
-        );
-        assert_eq!(
-            actual_region.end(),
-            expected_region.end().get(),
-            "end coordinates differ"
-        );
-
         let unit_seq = expected_region.attributes().get("rpt_unit_seq").unwrap();
         assert_eq!(
-            actual_region.repeat(1).as_str(),
+            actual_region.repeats().nth(1).unwrap().as_str(),
             unit_seq.as_string().unwrap()
         );
+    }
+
+    let repeat_units = gff
+        .iter()
+        .filter(|record| record.ty() == "repeat_unit")
+        .collect::<Vec<_>>();
+    assert_eq!(
+        crisprs.iter().map(|r| r.repeats().len()).sum::<usize>(),
+        repeat_units.len()
+    );
+    for (actual_repeat, expected_repeat) in
+        crisprs.iter().flat_map(|r| r.repeats()).zip(repeat_units)
+    {
+        assert_eq!(actual_repeat.start() + 1, expected_repeat.start().get());
+        assert_eq!(actual_repeat.end(), expected_repeat.end().get());
     }
 }
 

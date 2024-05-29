@@ -1,7 +1,12 @@
 #[cfg(feature = "memchr")]
 extern crate memchr;
 
-use std::ops::Deref;
+mod region;
+
+pub use self::region::Region;
+pub use self::region::Regions;
+
+use self::region::RegionType;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Flank {
@@ -88,6 +93,7 @@ pub struct Scanner<S> {
 }
 
 impl<S: AsRef<str>> Scanner<S> {
+    #[inline]
     pub fn new(sequence: S) -> Self {
         Self {
             parameters: ScannerBuilder::default(),
@@ -97,6 +103,7 @@ impl<S: AsRef<str>> Scanner<S> {
         }
     }
 
+    #[inline]
     pub fn sequence(&self) -> &S {
         &self.sequence
     }
@@ -547,61 +554,6 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
     }
 }
 
-/// A sequence region.
-#[derive(Debug)]
-pub struct Region<S> {
-    sequence: S,
-    start: usize,
-    end: usize,
-}
-
-impl<S> Region<S> {
-    pub fn new(sequence: S, start: usize, end: usize) -> Self {
-        Self {
-            sequence,
-            start,
-            end,
-        }
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.start >= self.end
-    }
-
-    pub fn len(&self) -> usize {
-        self.end - self.start
-    }
-}
-
-impl<S: AsRef<str>> Region<S> {
-    pub fn as_str(&self) -> &str {
-        self.as_ref()
-    }
-
-    pub fn as_bytes(&self) -> &[u8] {
-        self.as_ref().as_bytes()
-    }
-}
-
-impl<S: AsRef<str>> AsRef<str> for Region<S> {
-    fn as_ref(&self) -> &str {
-        &self.sequence.as_ref()[self.start..self.end]
-    }
-}
-
-impl<S: AsRef<str>> Deref for Region<S> {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-impl<S: AsRef<str>> PartialEq<&str> for Region<S> {
-    fn eq(&self, other: &&str) -> bool {
-        self.as_ref() == *other
-    }
-}
-
 /// A CRISPR repeat region in a nucleotide sequence.
 #[derive(Debug, Clone)]
 pub struct Crispr<S> {
@@ -612,6 +564,7 @@ pub struct Crispr<S> {
 
 impl<S> Crispr<S> {
     /// Get the number of repeats in the CRISPR region.
+    #[inline]
     pub fn len(&self) -> usize {
         self.indices.len()
     }
@@ -620,11 +573,13 @@ impl<S> Crispr<S> {
     ///
     /// This is returned as a zero-based, inclusive index, which can be
     /// used for slicing.
+    #[inline]
     pub fn start(&self) -> usize {
         self.indices.first().cloned().unwrap_or(0)
     }
 
     /// Get the end index of the CRISPR region (zero-based, exclusive).
+    #[inline]
     pub fn end(&self) -> usize {
         self.indices.last().cloned().unwrap_or(0) + self.repeat_length
     }
@@ -632,6 +587,7 @@ impl<S> Crispr<S> {
 
 impl<S: AsRef<str>> Crispr<S> {
     /// Create a new crispr region for the given sequence.
+    #[inline]
     fn new(sequence: S) -> Self {
         Self {
             sequence,
@@ -639,14 +595,15 @@ impl<S: AsRef<str>> Crispr<S> {
             repeat_length: 0,
         }
     }
-
-    /// Get the sequence of the complete CRISPR region.
-    pub fn region(&self) -> &str {
-        &self.sequence.as_ref()[self.start()..self.end()]
-    }
 }
 
 impl<S: AsRef<str> + Clone> Crispr<S> {
+    /// Get the complete CRISPR region as a [`Region`].
+    #[inline]
+    pub fn to_region(&self) -> Region<S> {
+        Region::new(self.sequence.clone(), self.start(), self.end())
+    }
+
     /// Get the sequence of the `k`-th repeat in the CRISPR region.
     ///
     /// # Panic
@@ -655,6 +612,12 @@ impl<S: AsRef<str> + Clone> Crispr<S> {
         let start = self.indices[index];
         let end = start + self.repeat_length;
         Region::new(self.sequence.clone(), start, end)
+    }
+
+    /// Get an iterator over the repeats of the CRISPR region.
+    #[inline]
+    pub fn repeats(&self) -> Regions<S> {
+        Regions::new(self, RegionType::Repeat)
     }
 
     /// Get the sequence of the `k`-th repeat in the CRISPR region.
@@ -669,11 +632,18 @@ impl<S: AsRef<str> + Clone> Crispr<S> {
         Region::new(self.sequence.clone(), spacer_start, spacer_end)
     }
 
+    /// Get an iterator over the spacers of the CRISPR region.
+    #[inline]
+    pub fn spacers(&self) -> Regions<S> {
+        Regions::new(self, RegionType::Spacer)
+    }
+
     /// Compute the spacing the `k`-th and `k+1`-th repeats.
     ///
     /// # Panic
     /// Panics if `k + 1 >= self.len()`.
-    pub fn repeat_spacing(&self, index: usize) -> usize {
+    #[inline]
+    fn repeat_spacing(&self, index: usize) -> usize {
         self.indices[index + 1] - self.indices[index]
     }
 }
@@ -704,7 +674,7 @@ mod tests {
         assert_eq!(crisprs[0].start(), 13);
         assert_eq!(crisprs[0].end(), 305);
 
-        let region = crisprs[0].region();
+        let region = crisprs[0].to_region();
         assert!(region.starts_with(crisprs[0].repeat(0).as_ref()),);
         assert!(region.ends_with(crisprs[0].repeat(4).as_ref()),);
     }
@@ -720,7 +690,7 @@ mod tests {
         assert_eq!(crisprs[0].start(), 13);
         assert_eq!(crisprs[0].end(), 305);
 
-        let region = crisprs[0].region();
+        let region = crisprs[0].to_region();
         assert!(region.starts_with(crisprs[0].repeat(0).as_ref()),);
         assert!(region.ends_with(crisprs[0].repeat(4).as_ref()),);
     }
