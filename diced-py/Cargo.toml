@@ -1,0 +1,23 @@
+[package]
+name = "diced-py"
+version = "0.1.0"
+authors = ["Martin Larralde <martin.larralde@embl.de>"]
+edition = "2021"
+license = "GPL-3.0-or-later"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "diced/lib.rs"
+
+[dependencies.diced]
+path = "../diced"
+version = "0.1.0"
+
+[dependencies]
+pyo3 = "0.21.2"
+
+[features]
+default = []
+built = []
+extension-module = ["pyo3/extension-module"]
+nightly = ["pyo3/nightly"]

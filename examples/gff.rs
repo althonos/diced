@@ -28,7 +28,7 @@ fn main() -> std::io::Result<()> {
             println!(
                 "{}\t{}\t{}\t{}\t{}\t{}\t.\t.\tID=CRISPR{};rpt_type=direct;rpt_family=CRISPR;rpt_unit_seq={}",
                 id,
-                "mincer:0.1.0",
+                "diced:0.1.0",
                 "repeat_region",
                 crispr.start() + 1,
                 crispr.end(),
