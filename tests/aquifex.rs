@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-fn test(builder: &mincer::ScannerBuilder, gff_path: &str) {
+fn test(builder: &diced::ScannerBuilder, gff_path: &str) {
     let mut reader = std::fs::File::open("tests/data/Aquifex_aeolicus_VF5.fna")
         .map(std::io::BufReader::new)
         .map(noodles_fasta::Reader::new)
@@ -56,7 +56,7 @@ fn test(builder: &mincer::ScannerBuilder, gff_path: &str) {
 #[test]
 fn default() {
     test(
-        &mincer::ScannerBuilder::new(),
+        &diced::ScannerBuilder::new(),
         "tests/data/Aquifex_aeolicus_VF5.gff",
     )
 }
@@ -64,7 +64,7 @@ fn default() {
 #[test]
 fn minSL12() {
     test(
-        mincer::ScannerBuilder::new().min_spacer_length(12),
+        diced::ScannerBuilder::new().min_spacer_length(12),
         "tests/data/Aquifex_aeolicus_VF5.minSL12.gff",
     )
 }
@@ -72,7 +72,7 @@ fn minSL12() {
 #[test]
 fn maxSL30() {
     test(
-        mincer::ScannerBuilder::new().max_spacer_length(30),
+        diced::ScannerBuilder::new().max_spacer_length(30),
         "tests/data/Aquifex_aeolicus_VF5.maxSL30.gff",
     )
 }
@@ -80,7 +80,7 @@ fn maxSL30() {
 #[test]
 fn minRL30_maxRL40() {
     test(
-        mincer::ScannerBuilder::new()
+        diced::ScannerBuilder::new()
             .min_repeat_length(30)
             .max_repeat_length(40),
         "tests/data/Aquifex_aeolicus_VF5.minRL30.maxRL40.gff",
@@ -90,7 +90,7 @@ fn minRL30_maxRL40() {
 #[test]
 fn maxSL34_minSL20_minNR4_minRL20() {
     test(
-        mincer::ScannerBuilder::new()
+        diced::ScannerBuilder::new()
             .max_spacer_length(34)
             .min_spacer_length(20)
             .min_repeat_count(4)
@@ -102,7 +102,7 @@ fn maxSL34_minSL20_minNR4_minRL20() {
 #[test]
 fn maxSL34_minSL20_minNR4_minRL20_maxRL40() {
     test(
-        mincer::ScannerBuilder::new()
+        diced::ScannerBuilder::new()
             .max_spacer_length(34)
             .min_spacer_length(20)
             .min_repeat_count(4)

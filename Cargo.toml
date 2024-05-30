@@ -1,5 +1,5 @@
 [package]
-name = "mincer"
+name = "diced"
 version = "0.1.0"
 authors = ["Martin Larralde <martin.larralde@embl.de>"]
 edition = "2021"

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-fn test(builder: &mincer::ScannerBuilder, gff_path: &str) {
+fn test(builder: &diced::ScannerBuilder, gff_path: &str) {
     let mut reader = std::fs::File::open("tests/data/NZ_CP019870.1.fna")
         .map(std::io::BufReader::new)
         .map(noodles_fasta::Reader::new)
@@ -56,7 +56,7 @@ fn test(builder: &mincer::ScannerBuilder, gff_path: &str) {
 #[test]
 fn default() {
     test(
-        &mincer::ScannerBuilder::new(),
+        &diced::ScannerBuilder::new(),
         "tests/data/NZ_CP019870.1.gff",
     )
 }
@@ -64,7 +64,7 @@ fn default() {
 #[test]
 fn maxRL36() {
     test(
-        &mincer::ScannerBuilder::new().max_repeat_length(36),
+        &diced::ScannerBuilder::new().max_repeat_length(36),
         "tests/data/NZ_CP019870.1.maxRL36.gff",
     )
 }
@@ -72,7 +72,7 @@ fn maxRL36() {
 #[test]
 fn minRL30() {
     test(
-        &mincer::ScannerBuilder::new().min_repeat_length(30),
+        &diced::ScannerBuilder::new().min_repeat_length(30),
         "tests/data/NZ_CP019870.1.minRL30.gff",
     )
 }
@@ -80,7 +80,7 @@ fn minRL30() {
 #[test]
 fn minRL30_minSL10_maxSL60() {
     test(
-        &mincer::ScannerBuilder::new()
+        &diced::ScannerBuilder::new()
             .min_repeat_length(30)
             .min_spacer_length(10)
             .max_spacer_length(60),
@@ -91,7 +91,7 @@ fn minRL30_minSL10_maxSL60() {
 #[test]
 fn minRL36_minSL10_maxSL60() {
     test(
-        &mincer::ScannerBuilder::new()
+        &diced::ScannerBuilder::new()
             .min_repeat_length(36)
             .min_spacer_length(10)
             .max_spacer_length(60),
@@ -102,7 +102,7 @@ fn minRL36_minSL10_maxSL60() {
 #[test]
 fn minSL10_maxSL60() {
     test(
-        &mincer::ScannerBuilder::new()
+        &diced::ScannerBuilder::new()
             .min_spacer_length(10)
             .max_spacer_length(60),
         "tests/data/NZ_CP019870.1.minSL10.maxSL60.gff",

@@ -67,6 +67,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22ec99545bb0ed0ea7bb9b8e1e9122ea386ff8a48c0922e43f36d45ab09e0e80"
 
 [[package]]
+name = "diced"
+version = "0.1.0"
+dependencies = [
+ "memchr",
+ "noodles-fasta",
+ "noodles-gff",
+ "strsim",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -103,16 +113,6 @@ name = "memchr"
 version = "2.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c8640c5d730cb13ebd907d8d04b52f55ac9a2eec55b440c8892f40d56c76c1d"
-
-[[package]]
-name = "mincer"
-version = "0.1.0"
-dependencies = [
- "memchr",
- "noodles-fasta",
- "noodles-gff",
- "strsim",
-]
 
 [[package]]
 name = "miniz_oxide"

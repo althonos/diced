@@ -1,28 +1,31 @@
-# 🔪🥩 Mincer [![Star me](https://img.shields.io/github/stars/althonos/mincer?style=social&label=Star&maxAge=3600)](https://github.com/althonos/mincer/stargazers)
+# 🔪🧅 Diced [![Star me](https://img.shields.io/github/stars/althonos/mincer?style=social&label=Star&maxAge=3600)](https://github.com/althonos/diced/stargazers)
 
-*A Rust re-implementation of the [MinCED](https://github.com/ctSkennerton/minced) algorithm to identify [CRISPRs](https://en.wikipedia.org/wiki/CRISPR) in genomic data.*
+*A Rust re-implementation of the [MinCED](https://github.com/ctSkennerton/minced) algorithm to Detect Instances of [CRISPRs](https://en.wikipedia.org/wiki/CRISPR) in Environmental Data.*
 
-[![Actions](https://img.shields.io/github/actions/workflow/status/althonos/mincer/test.yml?branch=main&logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/mincer/actions)
-[![Coverage](https://img.shields.io/codecov/c/gh/althonos/mincer?logo=codecov&style=flat-square&maxAge=3600)](https://codecov.io/gh/althonos/mincer/)
+[![Actions](https://img.shields.io/github/actions/workflow/status/althonos/diced/test.yml?branch=main&logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/diced/actions)
+[![Coverage](https://img.shields.io/codecov/c/gh/althonos/diced?logo=codecov&style=flat-square&maxAge=3600)](https://codecov.io/gh/althonos/diced/)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg?style=flat-square&maxAge=2678400)](https://choosealicense.com/licenses/gpl-3.0/)
-[![Crate](https://img.shields.io/crates/v/mincer.svg?maxAge=600&style=flat-square)](https://crates.io/crates/mincer)
-[![Docs](https://img.shields.io/docsrs/mincer?maxAge=600&style=flat-square)](https://docs.rs/mincer)
-[![Source](https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/mincer/)
-[![Mirror](https://img.shields.io/badge/mirror-EMBL-009f4d?style=flat-square&maxAge=2678400)](https://git.lumc.nl/mflarralde/mincer/)
-[![GitHub issues](https://img.shields.io/github/issues/althonos/mincer.svg?style=flat-square&maxAge=600)](https://github.com/althonos/mincer/issues)
-[![Changelog](https://img.shields.io/badge/keep%20a-changelog-8A0707.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/mincer/blob/master/CHANGELOG.md)
+[![Crate](https://img.shields.io/crates/v/diced.svg?maxAge=600&style=flat-square)](https://crates.io/crates/diced)
+[![Docs](https://img.shields.io/docsrs/diced?maxAge=600&style=flat-square)](https://docs.rs/diced)
+[![Source](https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/diced/)
+[![Mirror](https://img.shields.io/badge/mirror-EMBL-009f4d?style=flat-square&maxAge=2678400)](https://git.lumc.nl/mflarralde/diced/)
+[![GitHub issues](https://img.shields.io/github/issues/althonos/diced.svg?style=flat-square&maxAge=600)](https://github.com/althonos/diced/issues)
+[![Changelog](https://img.shields.io/badge/keep%20a-changelog-8A0707.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/diced/blob/master/CHANGELOG.md)
 
 
 ## 🗺️ Overview
 
-MinCED is a method developed by [Connor T. Skennerton](https://github.com/ctSkennerton) to identify [Clustered Regularly Interspaced Short Palindromic Repeats (CRISPRs)](https://en.wikipedia.org/wiki/CRISPR) in isolate and 
-metagenomic-assembled genomes. It was derived from the CRISPR Recognition Tool [\[1\]](#ref1). It uses a fast scanning algorithm to identify
+MinCED is a method developed by [Connor T. Skennerton](https://github.com/ctSkennerton) 
+to identify [Clustered Regularly Interspaced Short Palindromic Repeats (CRISPRs)](https://en.wikipedia.org/wiki/CRISPR) 
+in isolate and metagenomic-assembled genomes. It was derived from the CRISPR 
+Recognition Tool [\[1\]](#ref1). It uses a fast scanning algorithm to identify
 candidate repeats, combined with an extension step to find maximally spanning
 regions of the genome that feature a CRISPR repeat.
 
-Mincer is a Rust reimplementation of the MinCED method, using the original
+Diced is a Rust reimplementation of the MinCED method, using the original
 Java code as a reference. It produces exactly the same results as MinCED,
-but is available as a Rust library for convenience.
+corrects some bugs, and is much faster. The Diced implementation is available 
+as a Rust library for convenience.
 
 ### 📋 Features
 
@@ -32,7 +35,7 @@ but is available as a Rust library for convenience.
 
 ## 💡 Example
 
-Mincer supports any sequence in string format.
+Diced supports any sequence in string format.
 
 ```rust
 let mut reader = std::fs::File::open("tests/data/Aquifex_aeolicus_VF5.fna")
@@ -42,7 +45,7 @@ let mut reader = std::fs::File::open("tests/data/Aquifex_aeolicus_VF5.fna")
 let record = reader.records().next().unwrap().unwrap();
 let seq = std::str::from_utf8(record.sequence().as_ref()).unwrap();
 
-for crispr in mincer::Scanner::new(&seq) {
+for crispr in diced::Scanner::new(&seq) {
     println!("{} to {}: {} repeats", crispr.start(), crispr.end(), crispr.len());
     for repeat in crispr.repeats() {
         println!(" - at {}: {}", repeat.start(), repeat.as_str());
@@ -55,19 +58,19 @@ for crispr in mincer::Scanner::new(&seq) {
 ### ⚠️ Issue Tracker
 
 Found a bug ? Have an enhancement request ? Head over to the [GitHub issue
-tracker](https://github.com/althonos/mincer/issues) if you need to report
+tracker](https://github.com/althonos/diced/issues) if you need to report
 or ask something. If you are filing in on a bug, please include as much
 information as you can about the issue, and try to recreate the same bug
 in a simple, easily reproducible situation.
 
 <!-- ### 🏗️ Contributing
 
-Contributions are more than welcome! See [`CONTRIBUTING.md`](https://github.com/althonos/mincer/blob/master/CONTRIBUTING.md) for more details. -->
+Contributions are more than welcome! See [`CONTRIBUTING.md`](https://github.com/althonos/diced/blob/master/CONTRIBUTING.md) for more details. -->
 
 ## 📋 Changelog
 
 This project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
-and provides a [changelog](https://github.com/althonos/mincer/blob/master/CHANGELOG.md)
+and provides a [changelog](https://github.com/althonos/diced/blob/master/CHANGELOG.md)
 in the [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) format.
 
 ## ⚖️ License
