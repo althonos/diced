@@ -29,7 +29,8 @@ as a Rust library for convenience.
 
 ### 📋 Features
 
-- **library interface**: The Rust implementation is written as library to facilitate reusability in other projects. 
+- **library interface**: The Rust implementation is written as library to facilitate reusability in other projects. It is used to implement a Python library using
+PyO3 to generate a native extension.
 - **zero-copy**: The `Scanner` which iterates over candidate CRISPRs is zero-copy if provided with a simple `&str` reference, but it also supports data behind smart pointers such as `Rc<str>` or `Arc<str>`.
 - **fast string matching**: The Java implementation uses a handwritten implementation of the [Boyer-Moore algorithm](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_string-search_algorithm)[\[2\]](#ref2), while the Rust implementation uses the `str::find` method of the standard library, which implements the [Two-way algorithm](https://en.wikipedia.org/wiki/Two-way_string-matching_algorithm)[\[3\]](#ref3). In addition, the [`memchr`](https://crates.io/crates/memchr) crate can be used as a fast SIMD-capable implementation of the `memmem` function.
 
