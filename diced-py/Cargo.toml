@@ -4,6 +4,12 @@ version = "0.1.0"
 authors = ["Martin Larralde <martin.larralde@embl.de>"]
 edition = "2021"
 license = "GPL-3.0-or-later"
+description = "PyO3 bindings to Diced, a Rust re-implementation of the MinCED algorithm to Detect Instances of CRISPRs in Environmental Data."
+repository = "https://github.com/althonos/diced"
+homepage = "https://github.com/althonos/lightmotif/tree/main/diced-py"
+readme = "README.md"
+categories = ["science"]
+keywords = ["bioinformatics", "python", "bindings", "pssm"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -21,3 +27,8 @@ default = []
 built = []
 extension-module = ["pyo3/extension-module"]
 nightly = ["pyo3/nightly"]
+
+[[test]]
+name = "unittest"
+path = "diced/tests/unittest.rs"
+harness = false
