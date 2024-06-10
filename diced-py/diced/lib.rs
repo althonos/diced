@@ -1,4 +1,4 @@
-#![doc = include!("../README.md")]
+#![doc = include_str!("../README.md")]
 
 extern crate diced;
 extern crate pyo3;
@@ -6,16 +6,34 @@ extern crate pyo3;
 use pyo3::exceptions::PyIndexError;
 use pyo3::prelude::*;
 use pyo3::pybacked::PyBackedStr;
+use pyo3::types::PySlice;
 use pyo3::types::PyString;
 
 /// A sequence region.
-#[pyclass]
+#[pyclass(module = "diced.lib", frozen, subclass)]
 pub struct Region {
     region: diced::Region<PyBackedStr>,
 }
 
 #[pymethods]
 impl Region {
+    #[new]
+    pub fn __new__<'py>(
+        py: Python<'py>,
+        sequence: PyBackedStr,
+        start: usize,
+        end: usize,
+    ) -> PyResult<PyClassInitializer<Self>> {
+        if start > end || start > sequence.len() || end > sequence.len() {
+            let s = PySlice::new_bound(py, start as isize, end as isize, 1);
+            return Err(PyIndexError::new_err(s.to_object(py)));
+        }
+        Ok(Region {
+            region: diced::Region::new(sequence, start, end),
+        }
+        .into())
+    }
+
     /// `int`: The start coordinate of the region (zero-based).
     #[getter]
     pub fn start(&self) -> usize {
@@ -34,8 +52,25 @@ impl Region {
     }
 }
 
+/// A CRISPR repeat.
+#[pyclass(module="diced.lib", extends=Region)]
+pub struct Repeat {}
+
+#[pymethods]
+impl Repeat {
+    #[new]
+    pub fn __new__<'py>(
+        py: Python<'py>,
+        sequence: PyBackedStr,
+        start: usize,
+        end: usize,
+    ) -> PyResult<PyClassInitializer<Self>> {
+        Region::__new__(py, sequence, start, end).map(|r| r.add_subclass(Repeat {}))
+    }
+}
+
 /// A list of repeats inside a CRISPR region.
-#[pyclass]
+#[pyclass(module = "diced.lib", sequence)]
 pub struct Repeats {
     crispr: Py<Crispr>,
 }
@@ -46,7 +81,7 @@ impl Repeats {
         self.crispr.borrow(py).crispr.len()
     }
 
-    pub fn __getitem__<'py>(&self, py: Python<'py>, index: usize) -> PyResult<Region> {
+    pub fn __getitem__<'py>(&self, py: Python<'py>, index: usize) -> PyResult<Py<Repeat>> {
         self.crispr
             .bind(py)
             .borrow()
@@ -54,12 +89,34 @@ impl Repeats {
             .repeats()
             .nth(index)
             .ok_or(PyIndexError::new_err(index))
-            .map(|region| Region { region })
+            .and_then(|region| {
+                Py::new(
+                    py,
+                    PyClassInitializer::from(Region { region }).add_subclass(Repeat {}),
+                )
+            })
+    }
+}
+
+/// A CRISPR spacer.
+#[pyclass(module="diced.lib", extends=Region)]
+pub struct Spacer {}
+
+#[pymethods]
+impl Spacer {
+    #[new]
+    pub fn __new__<'py>(
+        py: Python<'py>,
+        sequence: PyBackedStr,
+        start: usize,
+        end: usize,
+    ) -> PyResult<PyClassInitializer<Self>> {
+        Region::__new__(py, sequence, start, end).map(|r| r.add_subclass(Spacer {}))
     }
 }
 
 /// A list of spacers inside a CRISPR region.
-#[pyclass]
+#[pyclass(module = "diced.lib", sequence)]
 pub struct Spacers {
     crispr: Py<Crispr>,
 }
@@ -70,7 +127,7 @@ impl Spacers {
         self.crispr.borrow(py).crispr.len().saturating_sub(1)
     }
 
-    pub fn __getitem__<'py>(&self, py: Python<'py>, index: usize) -> PyResult<Region> {
+    pub fn __getitem__<'py>(&self, py: Python<'py>, index: usize) -> PyResult<Py<Spacer>> {
         self.crispr
             .bind(py)
             .borrow()
@@ -78,12 +135,17 @@ impl Spacers {
             .spacers()
             .nth(index)
             .ok_or(PyIndexError::new_err(index))
-            .map(|region| Region { region })
+            .and_then(|region| {
+                Py::new(
+                    py,
+                    PyClassInitializer::from(Region { region }).add_subclass(Spacer {}),
+                )
+            })
     }
 }
 
 /// A CRISPR region in a nucleotide sequence.
-#[pyclass]
+#[pyclass(module = "diced.lib")]
 pub struct Crispr {
     crispr: diced::Crispr<PyBackedStr>,
 }
@@ -124,7 +186,7 @@ impl Crispr {
 }
 
 /// A scanner for iterating on the CRISPR regions of a genome.
-#[pyclass]
+#[pyclass(module = "diced.lib")]
 pub struct Scanner {
     scanner: diced::Scanner<PyBackedStr>,
 }
@@ -211,7 +273,9 @@ pub fn init(_py: Python, m: Bound<PyModule>) -> PyResult<()> {
     m.add_class::<Crispr>()?;
     m.add_class::<Region>()?;
     m.add_class::<Scanner>()?;
+    m.add_class::<Repeat>()?;
     m.add_class::<Repeats>()?;
+    m.add_class::<Spacer>()?;
     m.add_class::<Spacers>()?;
 
     m.add_function(wrap_pyfunction!(scan, &m)?)?;

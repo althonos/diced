@@ -32,8 +32,10 @@ if os.getenv("READTHEDOCS", "False") != "True":
 
 # -- Sphinx Setup ------------------------------------------------------------
 
+
 def setup(app):
     app.add_css_file("css/main.css")
+
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -91,7 +93,7 @@ extensions = [
 ]
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
