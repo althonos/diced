@@ -26,11 +26,13 @@ impl Region {
         self.region.end()
     }
 
+    /// Get the sequence region as a string.
     pub fn __str__<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
         PyString::new_bound(py, self.region.as_str())
     }
 }
 
+/// A list of repeats inside a CRISPR region.
 #[pyclass]
 pub struct Repeats {
     crispr: Py<Crispr>,
@@ -54,6 +56,7 @@ impl Repeats {
     }
 }
 
+/// A list of spacers inside a CRISPR region.
 #[pyclass]
 pub struct Spacers {
     crispr: Py<Crispr>,
@@ -119,11 +122,6 @@ impl Crispr {
 }
 
 /// A scanner for iterating on the CRISPR regions of a genome.
-///
-/// Attributes:
-///     sequence (`str` or `bytes`): The sequence of the genome being
-///         scanned by the `Scanner`.
-///
 #[pyclass]
 pub struct Scanner {
     scanner: diced::Scanner<PyBackedStr>,
@@ -135,6 +133,15 @@ impl Scanner {
         slf
     }
 
+    /// Return the next CRISPR region, if any.
+    ///
+    /// Returns:
+    ///     `~diced.Crispr`: The next CRISPR region in the sequence.
+    ///
+    /// Raises:
+    ///     `StopIteration`: When the end of the sequence has been reached
+    ///         without finding new CRISPR regions.
+    ///
     fn __next__<'py>(&mut self, py: Python<'py>) -> PyResult<Option<Crispr>> {
         match py.allow_threads(move || self.scanner.next()) {
             Some(crispr) => Ok(Some(Crispr { crispr })),
@@ -142,6 +149,7 @@ impl Scanner {
         }
     }
 
+    /// `str`: The genomic sequence being scanned.
     #[getter]
     fn sequence<'py>(&self, py: Python<'py>) -> Py<PyAny> {
         self.scanner.sequence().clone().to_object(py)
@@ -151,8 +159,8 @@ impl Scanner {
 /// Scan a genome sequence for CRISPRs repeats.
 ///
 /// Arguments:
-///     sequence (`str` or `bytes`): A string containing the genomic
-///         sequence to build a scanner for.
+///     sequence (`str`): A string containing the genomic sequence to build
+///         a scanner for.
 ///
 /// Returns:
 ///     `~diced.Scanner`: A scanner returning CRISPRs in the given genome.

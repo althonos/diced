@@ -114,8 +114,7 @@ The code for this implementation was derived from the
 `MinCED source code <https://github.com/ctSkennerton/minced>`_, which is 
 available under the GPLv3 as well.
 
-*This project is in no way not affiliated, sponsored, or otherwise endorsed
-by the original MinCED authors. It was was developed by* 
-`Martin Larralde <https://github.com/althonos/>`_*during his PhD project at the* 
+*This project is in no way not affiliated, sponsored, or otherwise endorsed by the original MinCED authors. It was was developed by* 
+`Martin Larralde <https://github.com/althonos/>`_ *during his PhD project at the* 
 `Leiden University Medical Center <https://www.lumc.nl/en/>`_
 *in the* `Zeller team <https://github.com/zellerlab>`_.
