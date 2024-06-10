@@ -54,7 +54,7 @@ Diced |Stars|
    :target: https://pepy.tech/project/diced
 
 
-.. currentmodule:: scoring_matrices
+.. currentmodule:: diced
 
 
 Overview
