@@ -28,7 +28,7 @@ pub struct ScannerBuilder {
 }
 
 impl ScannerBuilder {
-    /// Create a new scanner with default parameters.
+    /// Create a new scanner builder with default parameters.
     pub fn new() -> Self {
         Self::default()
     }
@@ -47,26 +47,31 @@ impl ScannerBuilder {
         scanner
     }
 
+    /// Set the minimum repeat number for CRISPR detection.
     pub fn min_repeat_count(&mut self, min_repeat_count: usize) -> &mut Self {
         self.min_repeat_count = min_repeat_count;
         self
     }
 
+    /// Set the minimum length for each CRISPR repeat.
     pub fn min_repeat_length(&mut self, min_repeat_length: usize) -> &mut Self {
         self.min_repeat_length = min_repeat_length;
         self
     }
 
+    /// Set the maximum length for each CRISPR repeat.
     pub fn max_repeat_length(&mut self, max_repeat_length: usize) -> &mut Self {
         self.max_repeat_length = max_repeat_length;
         self
     }
 
+    /// Set the minimum length for each CRISPR spacer.
     pub fn min_spacer_length(&mut self, min_spacer_length: usize) -> &mut Self {
         self.min_spacer_length = min_spacer_length;
         self
     }
 
+    /// Set the maximum length for each CRISPR spacer.
     pub fn max_spacer_length(&mut self, max_spacer_length: usize) -> &mut Self {
         self.max_spacer_length = max_spacer_length;
         self
@@ -700,6 +705,23 @@ mod tests {
     #[test]
     fn scan_empty() {
         let it = ScannerBuilder::default().scan("");
+        let crisprs = it.collect::<Vec<_>>();
+        assert_eq!(crisprs.len(), 0);
+    }
+
+    #[test]
+    fn scan_max_under_min() {
+        let it = ScannerBuilder::default()
+            .min_repeat_length(40)
+            .max_repeat_length(10)
+            .scan(SEQ);
+        let crisprs = it.collect::<Vec<_>>();
+        assert_eq!(crisprs.len(), 0);
+
+        let it = ScannerBuilder::default()
+            .min_spacer_length(40)
+            .max_spacer_length(10)
+            .scan(SEQ);
         let crisprs = it.collect::<Vec<_>>();
         assert_eq!(crisprs.len(), 0);
     }
