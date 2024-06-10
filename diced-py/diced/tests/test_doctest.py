@@ -21,7 +21,7 @@ import diced
 try:
     import Bio.SeqIO
 except ImportError:
-    Bio = None
+    Bio = None  # type: ignore
 
 # from .fasta import parse
 
@@ -74,9 +74,13 @@ def load_tests(loader, tests, ignore):
     packages = [None, diced]
     for pkg in iter(packages.pop, None):
 
-        for (_, subpkgname, subispkg) in pkgutil.walk_packages(pkg.__path__):
+        for _, subpkgname, subispkg in pkgutil.walk_packages(pkg.__path__):
             # do not import __main__ module to avoid side effects!
-            if subpkgname == "__main__" or subpkgname.startswith("tests") or subpkgname.startswith("cli"):
+            if (
+                subpkgname == "__main__"
+                or subpkgname.startswith("tests")
+                or subpkgname.startswith("cli")
+            ):
                 continue
             # import the submodule and add it to the tests
             module = importlib.import_module(".".join([pkg.__name__, subpkgname]))

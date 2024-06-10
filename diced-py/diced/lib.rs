@@ -1,4 +1,4 @@
-#![doc = include_str!("../README.md")]
+#![doc = include!("../README.md")]
 
 extern crate diced;
 extern crate pyo3;
