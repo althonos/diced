@@ -16,6 +16,41 @@ enum Flank {
     Right,
 }
 
+#[derive(Debug, Default)]
+struct DnaCount {
+    a: usize,
+    t: usize,
+    c: usize,
+    g: usize,
+}
+
+impl DnaCount {
+    fn new() -> Self {
+        Self::default()
+    }
+
+    fn clear(&mut self) {
+        self.a = 0;
+        self.c = 0;
+        self.t = 0;
+        self.g = 0;
+    }
+
+    fn count(&mut self, c: char) {
+        match c {
+            'a' | 'A' => self.a += 1,
+            'c' | 'C' => self.c += 1,
+            'g' | 'G' => self.g += 1,
+            't' | 'T' => self.t += 1,
+            _ => (),
+        }
+    }
+
+    fn counts(&self) -> [usize; 4] {
+        [self.a, self.c, self.t, self.g]
+    }
+}
+
 /// A builder type to parameterize a [`Scanner`].
 #[derive(Clone)]
 pub struct ScannerBuilder {
@@ -206,7 +241,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
 
         let seq = crispr.sequence.as_ref();
         let sequence_len = seq.len();
-        let mut char_counts = vec![0; u8::MAX as usize];
+        let mut char_counts = DnaCount::new();
 
         let mut right_extension_length = self.parameters.search_window_length;
         let max_right_extension_length =
@@ -223,23 +258,25 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             }
             for k in 0..crispr.indices.len() {
                 let current_repeat_start_index = crispr.indices[k];
-                let current_repeat = &seq[current_repeat_start_index
-                    ..current_repeat_start_index + right_extension_length];
-                let first_char = *current_repeat.as_bytes().last().unwrap();
-                char_counts[first_char as usize] += 1;
+                let last_char = seq[current_repeat_start_index..]
+                    .chars()
+                    .nth(right_extension_length - 1)
+                    .unwrap();
+                char_counts.count(last_char as char);
             }
             if char_counts
+                .counts()
                 .iter()
                 .any(|&n| ((n as f32) / (crispr.indices.len() as f32)) >= Self::THRESHOLD)
             {
                 right_extension_length += 1;
-                char_counts.fill(0);
+                char_counts.clear();
             } else {
                 break;
             }
         }
         right_extension_length -= 1;
-        char_counts.fill(0);
+        char_counts.clear();
 
         let mut left_extension_length = 0;
         let max_left_extension_length =
@@ -255,15 +292,19 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             }
             for k in 0..crispr.indices.len() {
                 let current_repeat_start_index = crispr.indices[k];
-                let first_char = seq.as_bytes()[current_repeat_start_index - left_extension_length];
-                char_counts[first_char as usize] += 1;
+                let first_char = seq[current_repeat_start_index - left_extension_length..]
+                    .chars()
+                    .next()
+                    .unwrap();
+                char_counts.count(first_char)
             }
             if char_counts
+                .counts()
                 .iter()
                 .any(|&n| ((n as f32) / (crispr.indices.len() as f32)) >= Self::THRESHOLD)
             {
                 left_extension_length += 1;
-                char_counts.fill(0);
+                char_counts.clear();
             } else {
                 break;
             }
@@ -444,32 +485,34 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
     fn _trim(&self, crispr: &mut Crispr<S>) {
         let num_repeats = crispr.indices.len();
 
-        let mut char_counts = vec![0u32; u8::MAX as usize];
+        let mut char_counts = DnaCount::new();
         while crispr.repeat_length > self.parameters.min_repeat_length {
             for k in 0..num_repeats {
                 let repeat = crispr.repeat(k);
-                let last_char = repeat.as_bytes()[repeat.len() - 1];
-                char_counts[last_char as usize] += 1;
+                let last_char = repeat.chars().last().unwrap();
+                char_counts.count(last_char);
             }
             if char_counts
+                .counts()
                 .iter()
                 .all(|&n| ((n as f32) / (crispr.indices.len() as f32)) < Self::THRESHOLD)
             {
                 crispr.repeat_length -= 1;
-                char_counts.fill(0);
+                char_counts.clear();
             } else {
                 break;
             }
         }
 
-        char_counts.fill(0);
+        char_counts.clear();
         while crispr.repeat_length > self.parameters.min_repeat_length {
             for k in 0..num_repeats {
                 let repeat = crispr.repeat(k);
-                let first_char = repeat.as_bytes()[0];
-                char_counts[first_char as usize] += 1;
+                let first_char = repeat.chars().next().unwrap();
+                char_counts.count(first_char);
             }
             if char_counts
+                .counts()
                 .iter()
                 .all(|&n| ((n as f32) / (crispr.indices.len() as f32)) < Self::THRESHOLD)
             {
@@ -477,7 +520,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                     *index += 1;
                 }
                 crispr.repeat_length -= 1;
-                char_counts.fill(0);
+                char_counts.clear();
             } else {
                 break;
             }
