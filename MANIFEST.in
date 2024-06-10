@@ -1,0 +1,16 @@
+include setup.*
+include COPYING
+include CHANGELOG.md
+include README.md
+include pyproject.toml
+
+# exclude Cargo.toml
+# exclude Cargo.lock
+
+recursive-include diced      *.rs Cargo.toml README.md
+recursive-include diced-py   *.rs Cargo.toml README.md *.py *.pyi
+
+recursive-include diced-py/diced/tests/data *
+
+include .cargo/config.toml
+recursive-include crates *
