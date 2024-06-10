@@ -17,7 +17,11 @@ import warnings
 from unittest import mock
 
 import diced
-import Bio.SeqIO
+
+try:
+    import Bio.SeqIO
+except ImportError:
+    Bio = None
 
 # from .fasta import parse
 
@@ -48,14 +52,14 @@ def load_tests(loader, tests, ignore):
     def setUp(self):
         warnings.simplefilter("ignore")
         os.chdir(os.path.realpath(os.path.join(__file__, os.path.pardir, "data")))
-        sys.modules["Bio"] = Bio
-        sys.modules["Bio.SeqIO"] = Bio.SeqIO
+        # sys.modules["Bio"] = Bio
+        # sys.modules["Bio.SeqIO"] = Bio.SeqIO
 
     def tearDown(self):
         os.chdir(_current_cwd)
         warnings.simplefilter(warnings.defaultaction)
-        sys.modules.pop("Bio")
-        sys.modules.pop("Bio.SeqIO")
+        # sys.modules.pop("Bio")
+        # sys.modules.pop("Bio.SeqIO")
 
     # doctests are not compatible with `green`, so we may want to bail out
     # early if `green` is running the tests
