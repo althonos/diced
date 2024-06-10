@@ -29,6 +29,7 @@ impl DnaCount {
         Self::default()
     }
 
+    #[inline]
     fn clear(&mut self) {
         self.a = 0;
         self.c = 0;
@@ -36,6 +37,7 @@ impl DnaCount {
         self.g = 0;
     }
 
+    #[inline]
     fn count(&mut self, c: char) {
         match c {
             'a' | 'A' => self.a += 1,
@@ -46,8 +48,9 @@ impl DnaCount {
         }
     }
 
-    fn counts(&self) -> [usize; 4] {
-        [self.a, self.c, self.t, self.g]
+    #[inline]
+    fn max(&self) -> usize {
+        self.a.max(self.c).max(self.t).max(self.g)
     }
 }
 
@@ -264,11 +267,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                     .unwrap();
                 char_counts.count(last_char as char);
             }
-            if char_counts
-                .counts()
-                .iter()
-                .any(|&n| ((n as f32) / (crispr.indices.len() as f32)) >= Self::THRESHOLD)
-            {
+            if ((char_counts.max() as f32) / (crispr.indices.len() as f32)) >= Self::THRESHOLD {
                 right_extension_length += 1;
                 char_counts.clear();
             } else {
@@ -298,11 +297,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                     .unwrap();
                 char_counts.count(first_char)
             }
-            if char_counts
-                .counts()
-                .iter()
-                .any(|&n| ((n as f32) / (crispr.indices.len() as f32)) >= Self::THRESHOLD)
-            {
+            if (char_counts.max() as f32) / (crispr.indices.len() as f32) >= Self::THRESHOLD {
                 left_extension_length += 1;
                 char_counts.clear();
             } else {
@@ -492,11 +487,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                 let last_char = repeat.chars().last().unwrap();
                 char_counts.count(last_char);
             }
-            if char_counts
-                .counts()
-                .iter()
-                .all(|&n| ((n as f32) / (crispr.indices.len() as f32)) < Self::THRESHOLD)
-            {
+            if (char_counts.max() as f32) / (num_repeats as f32) < Self::THRESHOLD {
                 crispr.repeat_length -= 1;
                 char_counts.clear();
             } else {
@@ -511,11 +502,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                 let first_char = repeat.chars().next().unwrap();
                 char_counts.count(first_char);
             }
-            if char_counts
-                .counts()
-                .iter()
-                .all(|&n| ((n as f32) / (crispr.indices.len() as f32)) < Self::THRESHOLD)
-            {
+            if (char_counts.max() as f32) / (num_repeats as f32) < Self::THRESHOLD {
                 for index in crispr.indices.iter_mut() {
                     *index += 1;
                 }
