@@ -3,25 +3,25 @@ Installation
 
 .. note::
 
-    Wheels are provided for x86-64 Linux, MacOS and Window, as well as Aarch64 
-    Linux and MacOS, but other machines will have to build the wheel from the 
+    Wheels are provided for x86-64 Linux, MacOS and Window, as well as Aarch64
+    Linux and MacOS, but other machines will have to build the wheel from the
     source distribution. Building ``diced`` involves compiling Rust code. If no
-    Rust compiler is available on the local machine, the setup script will 
+    Rust compiler is available on the local machine, the setup script will
     setup one to a temporary location.
 
 
-.. PyPi
-.. ^^^^
+PyPi
+^^^^
 
-.. ``diced`` is hosted on GitHub, but the easiest way to install it is to download
-.. the latest release from its `PyPi repository <https://pypi.python.org/pypi/diced>`_.
-.. It will install all build dependencies then install ``diced`` 
-.. either from a wheel if one is available, or from source after compiling the 
-.. Cython code :
+``diced`` is hosted on GitHub, but the easiest way to install it is to download
+the latest release from its `PyPi repository <https://pypi.python.org/pypi/diced>`_.
+It will install all build dependencies then install ``diced``
+either from a wheel if one is available, or from source after compiling the
+Cython code :
 
-.. .. code:: console
+.. code:: console
 
-..    $ pip install --user diced
+   $ pip install --user diced
 
 
 .. Conda
@@ -54,8 +54,8 @@ Installation
 .. Piwheels
 .. ^^^^^^^^
 
-.. ``diced`` is compatible with Raspberry Pi computers, and pre-built 
-.. wheels are compiled for `armv7l` platforms on `piwheels <https://www.piwheels.org>`_. 
+.. ``diced`` is compatible with Raspberry Pi computers, and pre-built
+.. wheels are compiled for `armv7l` platforms on `piwheels <https://www.piwheels.org>`_.
 .. Run the following command to install these instead of compiling from source:
 
 .. .. code:: console

@@ -8,7 +8,7 @@ Diced |Stars|
 
 |Actions| |Coverage| |PyPI| |Bioconda| |AUR| |Wheel| |Versions| |Implementations| |License| |Source| |Issues| |Docs| |Changelog| |Downloads|
 
-.. |Actions| image:: https://img.shields.io/github/actions/workflow/status/althonos/diced/test.yml?branch=main&logo=github&style=flat-square&maxAge=300
+.. |Actions| image:: https://img.shields.io/github/actions/workflow/status/althonos/diced/python.yml?branch=main&logo=github&style=flat-square&maxAge=300
    :target: https://github.com/althonos/diced/actions
 
 .. |Coverage| image:: https://img.shields.io/codecov/c/gh/althonos/diced?style=flat-square&maxAge=600

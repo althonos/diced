@@ -2,7 +2,7 @@
 
 *A Rust re-implementation of the [MinCED](https://github.com/ctSkennerton/minced) algorithm to Detect Instances of [CRISPRs](https://en.wikipedia.org/wiki/CRISPR) in Environmental Data.*
 
-[![Actions](https://img.shields.io/github/actions/workflow/status/althonos/diced/test.yml?branch=main&logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/diced/actions)
+[![Actions](https://img.shields.io/github/actions/workflow/status/althonos/diced/python.yml?branch=main&logo=github&style=flat-square&maxAge=300)](https://github.com/althonos/diced/actions)
 [![Coverage](https://img.shields.io/codecov/c/gh/althonos/diced?style=flat-square&maxAge=3600&logo=codecov)](https://codecov.io/gh/althonos/diced/)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg?style=flat-square&maxAge=2678400)](https://choosealicense.com/licenses/gpl-3.0/)
 [![PyPI](https://img.shields.io/pypi/v/diced.svg?style=flat-square&maxAge=3600&logo=PyPI)](https://pypi.org/project/diced)
