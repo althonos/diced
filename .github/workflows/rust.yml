@@ -109,11 +109,16 @@ jobs:
         profile: minimal
         toolchain: stable
         override: true
-    - name: Package and publish declaration crate
+    - name: Package and publish base crate
       uses: actions-rs/cargo@v1
       with:
         command: publish
-        args: '--token ${{ secrets.CRATES_IO_TOKEN }}'
+        args: '--token ${{ secrets.CRATES_IO_TOKEN }} -p diced'
+    - name: Package and publish Python crate
+      uses: actions-rs/cargo@v1
+      with:
+        command: publish
+        args: '--token ${{ secrets.CRATES_IO_TOKEN }} -p diced-py'
   release:
     environment: GitHub Releases
     runs-on: ubuntu-latest
