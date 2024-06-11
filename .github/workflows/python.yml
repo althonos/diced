@@ -218,6 +218,8 @@ jobs:
     - wheel-macos-aarch64
     - wheel-macos-x86_64
     - wheel-win32-x86_64
+    permissions:
+      id-token: write
     steps:
     - name: Download built wheels
       uses: actions/download-artifact@v2
@@ -225,11 +227,7 @@ jobs:
         name: wheels
         path: dist
     - name: Publish distributions to PyPI
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
-        skip_existing: true
+      uses: pypa/gh-action-pypi-publish@release/v1
 
   release:
     environment: GitHub Releases
