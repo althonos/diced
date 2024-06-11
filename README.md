@@ -24,8 +24,8 @@ regions of the genome that feature a CRISPR repeat.
 
 Diced is a Rust reimplementation of the MinCED method, using the original
 Java code as a reference. It produces exactly the same results as MinCED,
-corrects some bugs, and is much faster. The Diced implementation is available 
-as a Rust library for convenience.
+corrects some bugs ([minced#35](https://github.com/ctSkennerton/minced/issues/35)), and is
+much faster. The Diced implementation is available as a Rust library for convenience.
 
 ### 📋 Features
 

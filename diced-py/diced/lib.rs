@@ -227,7 +227,7 @@ impl Scanner {
 ///         a scanner for.
 ///
 /// Returns:
-///     `~diced.Scanner`: A scanner returning CRISPRs in the given genome.
+///     `~diced.Scanner`: A scanner yielding CRISPRs in the given contig.
 ///
 #[pyfunction]
 pub fn scan(sequence: PyBackedStr) -> PyResult<Scanner> {

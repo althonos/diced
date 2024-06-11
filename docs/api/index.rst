@@ -33,6 +33,8 @@ Classes
 
         diced.Scanner
         diced.Crispr
+        diced.Repeat
         diced.Repeats
+        diced.Spacer
         diced.Spacers
         diced.Region

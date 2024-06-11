@@ -4,7 +4,7 @@ Diced |Stars|
 .. |Stars| image:: https://img.shields.io/github/stars/althonos/diced.svg?style=social&maxAge=3600&label=Star
    :target: https://github.com/althonos/diced/stargazers
 
-*A Rust re-implementation of the* `MinCED <https://github.com/ctSkennerton/minced>_` *algorithm to Detect Instances of* `CRISPRs <https://en.wikipedia.org/wiki/CRISPR>_` *in Environmental Data.*
+*A Rust re-implementation of the* `MinCED <https://github.com/ctSkennerton/minced>`_ *algorithm to Detect Instances of* `CRISPRs <https://en.wikipedia.org/wiki/CRISPR>`_ *in Environmental Data.*
 
 |Actions| |Coverage| |PyPI| |Bioconda| |AUR| |Wheel| |Versions| |Implementations| |License| |Source| |Issues| |Docs| |Changelog| |Downloads|
 
@@ -118,3 +118,4 @@ available under the GPLv3 as well.
 `Martin Larralde <https://github.com/althonos/>`_ *during his PhD project at the* 
 `Leiden University Medical Center <https://www.lumc.nl/en/>`_
 *in the* `Zeller team <https://github.com/zellerlab>`_.
+
