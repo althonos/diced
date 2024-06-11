@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/diced/compare/11ad0d3...HEAD
+[Unreleased]: https://github.com/althonos/diced/compare/v0.1.0...HEAD
+
+
+## [v0.1.0] - 2024-06-11
+[Unreleased]: https://github.com/althonos/diced/compare/11ad0d3...v0.1.0
 
 Initial release.
