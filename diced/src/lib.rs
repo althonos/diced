@@ -261,10 +261,8 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             }
             for k in 0..crispr.indices.len() {
                 let current_repeat_start_index = crispr.indices[k];
-                let last_char = seq[current_repeat_start_index..]
-                    .chars()
-                    .nth(right_extension_length - 1)
-                    .unwrap();
+                let last_char =
+                    seq.as_bytes()[current_repeat_start_index + right_extension_length - 1];
                 char_counts.count(last_char as char);
             }
             if ((char_counts.max() as f32) / (crispr.indices.len() as f32)) >= Self::THRESHOLD {
@@ -291,11 +289,8 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             }
             for k in 0..crispr.indices.len() {
                 let current_repeat_start_index = crispr.indices[k];
-                let first_char = seq[current_repeat_start_index - left_extension_length..]
-                    .chars()
-                    .next()
-                    .unwrap();
-                char_counts.count(first_char)
+                let first_char = seq.as_bytes()[current_repeat_start_index - left_extension_length];
+                char_counts.count(first_char as char)
             }
             if (char_counts.max() as f32) / (crispr.indices.len() as f32) >= Self::THRESHOLD {
                 left_extension_length += 1;
@@ -425,7 +420,11 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             }
         };
 
-        let mut begin = candidate_repeat_index.saturating_sub(scan_range);
+        if candidate_repeat_index < scan_range {
+            return None;
+        }
+
+        let mut begin = candidate_repeat_index - scan_range;
         let mut end = candidate_repeat_index + scan_range;
 
         let scan_left_max_end = first_repeat_index
@@ -447,9 +446,6 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             }
         }
 
-        // if begin < 0 {
-        //     return None;
-        // }
         if begin + repeat_length > sequence_len {
             return None;
         }
@@ -460,14 +456,9 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
             return None;
         }
 
-        let mut array = Vec::new();
-        for i in begin..=end {
-            let candidate_repeat_string = &seq[i..i + repeat_length];
-            array.push(Self::_hamming(&repeat_string, candidate_repeat_string));
-        }
-
-        let new_candidate_repeat_index =
-            begin + (0..array.len()).min_by_key(|&i| array[i]).unwrap();
+        let new_candidate_repeat_index = (begin..=end)
+            .min_by_key(|&i| Self::_hamming(&repeat_string, &seq[i..i + repeat_length]))
+            .unwrap();
         let new_candidate_repeat_string =
             &seq[new_candidate_repeat_index..new_candidate_repeat_index + repeat_length];
         if Self::_similarity(&repeat_string, new_candidate_repeat_string) >= confidence {
@@ -484,8 +475,8 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
         while crispr.repeat_length > self.parameters.min_repeat_length {
             for k in 0..num_repeats {
                 let repeat = crispr.repeat(k);
-                let last_char = repeat.chars().last().unwrap();
-                char_counts.count(last_char);
+                let last_char = repeat.as_bytes().last().unwrap();
+                char_counts.count(*last_char as char);
             }
             if (char_counts.max() as f32) / (num_repeats as f32) < Self::THRESHOLD {
                 crispr.repeat_length -= 1;
@@ -571,16 +562,19 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
             if candidate_crispr.indices.len() >= self.parameters.min_repeat_count {
                 self._get_actual_repeat_length(&mut candidate_crispr);
                 let actual_repeat_length = candidate_crispr.repeat_length;
-                if (actual_repeat_length >= self.parameters.min_repeat_length)
-                    && (actual_repeat_length <= self.parameters.max_repeat_length)
-                    && self._has_non_repeating_spacers(&candidate_crispr)
-                    && self._has_similarly_sized_spacers(&candidate_crispr)
-                {
-                    self._check_flank(&mut candidate_crispr, Flank::Left, 30, 0.7);
-                    self._check_flank(&mut candidate_crispr, Flank::Right, 30, 0.7);
-                    self._trim(&mut candidate_crispr);
-                    self.j = candidate_crispr.end();
-                    return Some(candidate_crispr);
+
+                if actual_repeat_length >= self.parameters.min_repeat_length {
+                    if actual_repeat_length <= self.parameters.max_repeat_length {
+                        if self._has_non_repeating_spacers(&candidate_crispr) {
+                            if self._has_similarly_sized_spacers(&candidate_crispr) {
+                                self._check_flank(&mut candidate_crispr, Flank::Left, 30, 0.7);
+                                self._check_flank(&mut candidate_crispr, Flank::Right, 30, 0.7);
+                                self._trim(&mut candidate_crispr);
+                                self.j = candidate_crispr.end();
+                                return Some(candidate_crispr);
+                            }
+                        }
+                    }
                 }
             }
 
