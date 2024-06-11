@@ -9,6 +9,7 @@ pub use self::region::Region;
 pub use self::region::Regions;
 
 use self::region::RegionType;
+use std::ops::Deref;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Flank {
@@ -51,6 +52,63 @@ impl DnaCount {
     #[inline]
     fn max(&self) -> usize {
         self.a.max(self.c).max(self.t).max(self.g)
+    }
+}
+
+#[derive(Debug)]
+struct Sequence<S> {
+    sequence: S,
+    mask: Vec<Region<S>>,
+}
+
+impl<S: AsRef<str> + Clone> Sequence<S> {
+    const MASK_SIZE: usize = 100;
+    pub fn new(sequence: S) -> Self {
+        let s = sequence.as_ref();
+        let mut mask = Vec::new();
+
+        let mut i = 0;
+        let mut j;
+        let mut n;
+
+        while i < s.len() {
+            n = 0;
+            j = i + 1;
+
+            while j < s.len() && s.as_bytes()[i] == s.as_bytes()[j] {
+                n += 1;
+                j += 1;
+            }
+
+            if n >= Self::MASK_SIZE {
+                mask.push(Region::new(sequence.clone(), i, j));
+            }
+
+            i = j;
+        }
+
+        // add an empty mask at the end to facilitate some scanning code later
+        mask.push(Region::new(sequence.clone(), s.len(), s.len()));
+
+        Self { sequence, mask }
+    }
+
+    pub fn len(&self) -> usize {
+        self.as_ref().len()
+    }
+
+    fn _is_masked(&self, index: &mut usize, begin: usize, end: usize) -> bool {
+        while begin > self.mask[*index].end() {
+            *index += 1;
+        }
+        begin <= self.mask[*index].end() && self.mask[*index].start() <= end
+    }
+}
+
+impl<S> Deref for Sequence<S> {
+    type Target = S;
+    fn deref(&self) -> &Self::Target {
+        &self.sequence
     }
 }
 
@@ -132,26 +190,10 @@ impl Default for ScannerBuilder {
 /// A scanner for identifying CRISPR regions in a nucleotide sequence.
 pub struct Scanner<S> {
     parameters: ScannerBuilder,
-    sequence: S,
+    sequence: Sequence<S>,
     sequence_length: usize,
+    mask_index: usize,
     j: usize,
-}
-
-impl<S: AsRef<str>> Scanner<S> {
-    #[inline]
-    pub fn new(sequence: S) -> Self {
-        Self {
-            parameters: ScannerBuilder::default(),
-            sequence_length: sequence.as_ref().len(),
-            j: 0,
-            sequence,
-        }
-    }
-
-    #[inline]
-    pub fn sequence(&self) -> &S {
-        &self.sequence
-    }
 }
 
 impl<S: AsRef<str> + Clone> Scanner<S> {
@@ -159,6 +201,23 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
     const SPACER_TO_SPACER_MAX_SIMILARITY: f32 = 0.62;
     const SPACER_TO_SPACER_LENGTH_DIFF: usize = 12;
     const SPACER_TO_REPEAT_LENGTH_DIFF: usize = 30;
+
+    #[inline]
+    pub fn new(sequence: S) -> Self {
+        let seq = Sequence::new(sequence);
+        Self {
+            parameters: ScannerBuilder::default(),
+            sequence_length: seq.len(),
+            j: 0,
+            sequence: seq,
+            mask_index: 0,
+        }
+    }
+
+    #[inline]
+    pub fn sequence(&self) -> &S {
+        &self.sequence
+    }
 
     fn _similarity<S1: AsRef<str>, S2: AsRef<str>>(s1: S1, s2: S2) -> f32 {
         let s1 = s1.as_ref();
@@ -523,9 +582,7 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
             .saturating_sub(self.parameters.max_spacer_length)
             .saturating_sub(self.parameters.search_window_length);
 
-        while self.j <= search_end {
-            let mut candidate_crispr = Crispr::new(self.sequence.clone());
-
+        while self.j < search_end {
             let mut begin_search =
                 self.j + self.parameters.min_repeat_length + self.parameters.min_spacer_length;
             let mut end_search = self.j
@@ -542,6 +599,17 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
                 end_search = begin_search;
             }
 
+            if self
+                .sequence
+                ._is_masked(&mut self.mask_index, begin_search, end_search)
+            {
+                self.j = self.sequence.mask[self.mask_index].end();
+                if self.j >= search_end {
+                    return None;
+                }
+                continue;
+            }
+
             let pattern_start = self.j;
             let pattern_end = (self.j + self.parameters.search_window_length).min(seq.len());
 
@@ -553,6 +621,7 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
             #[cfg(not(feature = "memchr"))]
             let pos = subseq.find(pattern);
 
+            let mut candidate_crispr = Crispr::new(self.sequence.clone());
             if let Some(k) = pos {
                 candidate_crispr.indices.push(self.j);
                 candidate_crispr.indices.push(begin_search + k);
