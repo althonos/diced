@@ -240,6 +240,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
 
     fn _scan_right(&self, crispr: &mut Crispr<S>, pattern: &[u8], scan_range: usize) {
         let seq = crispr.sequence.as_ref();
+        let bytes = seq.as_bytes();
 
         let num_repeats = crispr.indices.len();
         let pattern_len = pattern.len();
@@ -269,10 +270,10 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                 break;
             }
 
-            let subseq = &seq[begin_search..end_search];
+            let subseq = &bytes[begin_search..end_search];
 
             #[cfg(feature = "memchr")]
-            let pos = finder.find(subseq.as_bytes());
+            let pos = finder.find(subseq);
             #[cfg(not(feature = "memchr"))]
             let pos = subseq.find(pattern);
 
@@ -358,7 +359,9 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                 break;
             }
         }
-        left_extension_length -= 1;
+        if left_extension_length > 0 {
+            left_extension_length -= 1;
+        }
 
         for index in crispr.indices.iter_mut() {
             *index -= left_extension_length;
@@ -832,18 +835,32 @@ mod tests {
             "AAACA"
         );
 
-        let it = ScannerBuilder::default()
-            .min_repeat_length(40)
-            .max_repeat_length(10)
-            .scan(UNICODE);
+        let it = ScannerBuilder::default().scan(UNICODE);
         let crisprs = it.collect::<Vec<_>>();
         assert_eq!(crisprs.len(), 0);
 
-        // let it = ScannerBuilder::default()
-        //     .min_spacer_length(40)
-        //     .max_spacer_length(10)
-        //     .scan(SEQ);
-        // let crisprs = it.collect::<Vec<_>>();
-        // assert_eq!(crisprs.len(), 0);
+        const UNICODE2: &'static str = concat!(
+            "GAAJJJJGssGAGAGGTATAACCAbAACCGTTGTGTJJJJJJJJJJJJJJJJJJJGGTATAACCA",
+            "bAACCGTTGTGT@AGGAGAGGTATAACCAbAACCGTTGTGT@GGTJJJJJJGGTATAACCAbAAC",
+            "CGTATAAGAGGTATAACCAbAACCGTTGTGT@GGTATAGATCTAATGG?AATGAAGGCAATAAGG",
+            "T\x04\x00yN",
+        );
+
+        let it2 = ScannerBuilder::default().scan(UNICODE2);
+        let crisprs2 = it2.collect::<Vec<_>>();
+        assert_eq!(crisprs2.len(), 0);
+
+        const UNICODE3: &'static str = concat!(
+            "GAAJJJJJJJJJJJJJJJJJJJJJJJGGTATAACCAbAACCGTTGTGT@AGGAGAGGTATAACCAbAACC",
+            "GTTGTGT@GGTJJJJJJGGTATAACCAbAACCGTATAAGAGGTATAACCAAGAGGTATAACCAbAACCGT",
+            "TGTGGAAJJJJJJJJJJJJJJJJJCCGTTGTTGTGT@AGGAGAGGTATAACCAbAACCGTTGTGT@GGTJ",
+            "JJJJJGGTETAACCAbAACCGTATAAGAGGTATAACCAbAACCGAGAGGTAGGACAACTTACCTACATAA",
+            "CCAbAACCGTTGTGGAAJJJJJJJJJJJJJJJJJCCGTTGTTGTGT@AGGAGAGGTATAACCAbAACCGT",
+            "TGTGT@GAAJJJJJJJJJJJJJJJJJJJJJJJGGTATAA6CAbAACAGTTGTGT@AGGAGAGGTATAACC",
+            "AbAACCGTTGTGT@GGTJJJJJJGGTATAACCAGCGGTTGAAGGTGTGCAACCTCAGTCbAACCGTACGT",
+        );
+        let it3 = ScannerBuilder::default().scan(UNICODE3);
+        let crisprs3 = it3.collect::<Vec<_>>();
+        assert_eq!(crisprs3.len(), 1);
     }
 }
