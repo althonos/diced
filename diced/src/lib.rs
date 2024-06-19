@@ -308,7 +308,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
 
         let mut right_extension_length = self.parameters.search_window_length;
         let max_right_extension_length =
-            shortest_repeat_spacing - self.parameters.min_spacer_length;
+            shortest_repeat_spacing.saturating_sub(self.parameters.min_spacer_length);
 
         while right_extension_length <= max_right_extension_length {
             if last_repeat_start_index + right_extension_length >= sequence_len {
@@ -332,12 +332,15 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
                 break;
             }
         }
-        right_extension_length -= 1;
+        if right_extension_length > 0 {
+            right_extension_length -= 1;
+        }
         char_counts.clear();
 
         let mut left_extension_length = 0;
-        let max_left_extension_length =
-            shortest_repeat_spacing - self.parameters.min_spacer_length - right_extension_length;
+        let max_left_extension_length = shortest_repeat_spacing
+            .saturating_sub(self.parameters.min_spacer_length)
+            .saturating_sub(right_extension_length);
         while left_extension_length <= max_left_extension_length {
             if first_repeat_start_index < left_extension_length {
                 if crispr.indices.len() > self.parameters.min_repeat_count + 1 {
