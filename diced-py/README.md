@@ -31,6 +31,8 @@ Java code as a reference. It produces exactly the same results as MinCED,
 corrects some bugs, and is much faster. The Diced implementation is available 
 as a Rust library for convenience.
 
+*This is the Python version, there is a [Rust crate](https://crates.io/crates/diced) available as well.*
+
 ### 📋 Features
 
 - **library interface**: The Rust implementation is written as library to facilitate 
