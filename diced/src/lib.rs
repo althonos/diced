@@ -64,7 +64,7 @@ struct Sequence<S> {
 impl<S: AsRef<str> + Clone> Sequence<S> {
     const MASK_SIZE: usize = 100;
     pub fn new(sequence: S) -> Self {
-        let s = sequence.as_ref();
+        let s = sequence.as_ref().as_bytes();
         let mut mask = Vec::new();
 
         let mut i = 0;
@@ -75,7 +75,7 @@ impl<S: AsRef<str> + Clone> Sequence<S> {
             n = 0;
             j = i + 1;
 
-            while j < s.len() && s.as_bytes()[i] == s.as_bytes()[j] {
+            while j < s.len() && s[i] == s[j] {
                 n += 1;
                 j += 1;
             }
@@ -238,7 +238,7 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
         }
     }
 
-    fn _scan_right(&self, crispr: &mut Crispr<S>, pattern: &str, scan_range: usize) {
+    fn _scan_right(&self, crispr: &mut Crispr<S>, pattern: &[u8], scan_range: usize) {
         let seq = crispr.sequence.as_ref();
 
         let num_repeats = crispr.indices.len();
@@ -549,8 +549,8 @@ impl<S: AsRef<str> + Clone> Scanner<S> {
         while crispr.repeat_length > self.parameters.min_repeat_length {
             for k in 0..num_repeats {
                 let repeat = crispr.repeat(k);
-                let first_char = repeat.chars().next().unwrap();
-                char_counts.count(first_char);
+                let first_char = repeat.as_bytes().first().unwrap();
+                char_counts.count(*first_char as char);
             }
             if (char_counts.max() as f32) / (num_repeats as f32) < Self::THRESHOLD {
                 for index in crispr.indices.iter_mut() {
@@ -569,6 +569,7 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
     type Item = Crispr<S>;
     fn next(&mut self) -> Option<Self::Item> {
         let seq = self.sequence.as_ref();
+        let bytes = seq.as_bytes();
 
         let skips = self
             .parameters
@@ -613,11 +614,11 @@ impl<S: AsRef<str> + Clone> Iterator for Scanner<S> {
             let pattern_start = self.j;
             let pattern_end = (self.j + self.parameters.search_window_length).min(seq.len());
 
-            let pattern = &seq[pattern_start..pattern_end];
-            let subseq = &seq[begin_search..end_search];
+            let pattern = &bytes[pattern_start..pattern_end];
+            let subseq = &bytes[begin_search..end_search];
 
             #[cfg(feature = "memchr")]
-            let pos = memchr::memmem::find(subseq.as_bytes(), pattern.as_bytes());
+            let pos = memchr::memmem::find(subseq, pattern);
             #[cfg(not(feature = "memchr"))]
             let pos = subseq.find(pattern);
 
@@ -817,5 +818,32 @@ mod tests {
             .scan(SEQ);
         let crisprs = it.collect::<Vec<_>>();
         assert_eq!(crisprs.len(), 0);
+    }
+
+    #[test]
+    fn scan_unicode() {
+        const UNICODE: &'static str = concat!(
+            "AAAAAAAGAFCACATTGACGCGGGGGGGGCATACCAAACATAATTGACcCGGACACGCCAAGGCT",
+            "CACGTTAACAAAAGACACGACGCGGGACAATAGGATAAACATAATTGACTAAACGTGGGAACACG",
+            "CGGGCATACCAAACATAATTGACcCGGATTGACGCGGGACAATAGGATAAACATAATTGACCACC",
+            "CGGACACCAAAAAAAGAFCACATTGACGCGGGCATACCAgACATAαTTGACcCGGAAAAAAAAGA",
+            "FCACATTGACGAAAAAGA)GAFCACATSGACGGTCGTTTTCATGAACAAGTTGACcCGGACdCAA",
+            "CAAAGAFCACATTGACGCGGcCGGACdCAACAAAGGCATACCAAACATAAATTGGCGGGCATACC",
+            "AAACA"
+        );
+
+        let it = ScannerBuilder::default()
+            .min_repeat_length(40)
+            .max_repeat_length(10)
+            .scan(UNICODE);
+        let crisprs = it.collect::<Vec<_>>();
+        assert_eq!(crisprs.len(), 0);
+
+        // let it = ScannerBuilder::default()
+        //     .min_spacer_length(40)
+        //     .max_spacer_length(10)
+        //     .scan(SEQ);
+        // let crisprs = it.collect::<Vec<_>>();
+        // assert_eq!(crisprs.len(), 0);
     }
 }
