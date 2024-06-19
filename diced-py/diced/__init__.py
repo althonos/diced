@@ -1,4 +1,4 @@
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from . import lib
 from .lib import Scanner, Crispr, Region, Repeats, Repeat, Spacers, Spacer, scan

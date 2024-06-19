@@ -6,7 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/diced/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/althonos/diced/compare/v0.1.1...HEAD
+
+
+## [v0.1.1] - 2024-06-19
+[v0.1.1]: https://github.com/althonos/diced/compare/v0.1.0...v0.1.1
+
+### Changed
+- Use raw sequence bytes to avoid panics on Unicode characters slicing in `Scanner`.
+
+### Fixed
+- Incorrect metadata in Python package and documentation.
+- Missing test data in Python wheels.
+- Indexing and underflow errors found by `afl` fuzzer.
 
 
 ## [v0.1.0] - 2024-06-11

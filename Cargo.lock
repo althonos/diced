@@ -80,7 +80,7 @@ checksum = "22ec99545bb0ed0ea7bb9b8e1e9122ea386ff8a48c0922e43f36d45ab09e0e80"
 
 [[package]]
 name = "diced"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "memchr",
  "noodles-fasta",
@@ -90,7 +90,7 @@ dependencies = [
 
 [[package]]
 name = "diced-py"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "diced",
  "pyo3",
