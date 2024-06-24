@@ -9,7 +9,7 @@ repository = "https://github.com/althonos/diced"
 homepage = "https://github.com/althonos/lightmotif/tree/main/diced-py"
 readme = "README.md"
 categories = ["science"]
-keywords = ["bioinformatics", "python", "bindings", "pssm"]
+keywords = ["bioinformatics", "genomics", "repeat", "crispr", "python"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
