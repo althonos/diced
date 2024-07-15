@@ -38,12 +38,13 @@ as a Rust library for convenience.
 - **library interface**: The Rust implementation is written as library to facilitate 
   reusability in other projects. It is used to implement a Python library using
   PyO3 to generate a native extension.
-- **single dependency**: Pyrodigal is distributed as a Python package, so you
+- **single dependency**: Diced is distributed as a Python package, so you
   can add it as a dependency to your project, and stop worrying about the
-  Prodigal binary being present on the end-user machine.
+  Java Virtual Machine being present on the end-user machine.
 - **zero-copy**: The `Scanner` which iterates over candidate CRISPRs is zero-copy if 
   provided with a simple `&str` reference, but it also supports data behind smart 
-  pointers such as `Rc<str>` or `Arc<str>`.
+  pointers such as `Rc<str>` or `Arc<str>`. The original Python string and its
+  substrings are never copied.
 - **fast string matching**: The Java implementation uses a handwritten implementation 
   of the [Boyer-Moore algorithm](https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_string-search_algorithm)[\[2\]](#ref2), while the Rust 
   implementation uses the `str::find` method of the standard library, which 
