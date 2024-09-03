@@ -23,7 +23,7 @@ jobs:
         - pp39-manylinux_aarch64
         - pp310-manylinux_aarch64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up QEMU
       id: qemu
       uses: docker/setup-qemu-action@v2
@@ -40,9 +40,9 @@ jobs:
         CIBW_TEST_COMMAND: python -m unittest diced.tests
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-${{ matrix.python-tag }}
         path: dist/*
 
   wheel-linux-x86_64:
@@ -62,7 +62,7 @@ jobs:
         - pp39-manylinux_x86_64
         - pp310-manylinux_x86_64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
     - name: Build manylinux wheels
       uses: pypa/cibuildwheel@v2.19.0
@@ -75,9 +75,9 @@ jobs:
         CIBW_TEST_COMMAND: python -m unittest diced.tests
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-${{ matrix.python-tag }}
         path: dist/*
 
   wheel-macos-x86_64:
@@ -96,7 +96,7 @@ jobs:
         - pp39-macosx_x86_64
         - pp310-macosx_x86_64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
     - name: Build manylinux wheels
       uses: pypa/cibuildwheel@v2.19.0
@@ -109,9 +109,9 @@ jobs:
         CIBW_TEST_COMMAND: python -m unittest diced.tests
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-${{ matrix.python-tag }}
         path: dist/*
 
   wheel-macos-aarch64:
@@ -127,7 +127,7 @@ jobs:
         - cp311-macosx_arm64
         - cp312-macosx_arm64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
       with:
         targets: aarch64-apple-darwin
@@ -142,9 +142,9 @@ jobs:
         CIBW_TEST_COMMAND: python -m unittest diced.tests
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-${{ matrix.python-tag }}
         path: dist/*
 
   wheel-win32-x86_64:
@@ -164,7 +164,7 @@ jobs:
         - pp39-win_amd64
         - pp310-win_amd64
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
     - name: Build manylinux wheels
       uses: pypa/cibuildwheel@v2.19.0
@@ -176,30 +176,30 @@ jobs:
         CIBW_TEST_COMMAND: python -m unittest diced.tests
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: wheels-${{ matrix.python-tag }}
         path: dist/*
 
   sdist:
     runs-on: ubuntu-latest
     name: Build source distribution
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: true
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v2
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.11
+        python-version: 3.12
     - name: Install setup requirements
       run: python -m pip install build
     - name: Build source distribution
       run: python -m build . -s -v
     - name: Store built source distribution
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-        name: wheels
+        name: sdist
         path: dist/*
 
   upload:
@@ -217,11 +217,18 @@ jobs:
     permissions:
       id-token: write
     steps:
-    - name: Download built wheels
-      uses: actions/download-artifact@v2
+    - name: Download source distribution
+      uses: actions/download-artifact@v4
       with:
-        name: wheels
-        path: dist
+        name: sdist
+        path: dist/
+        merge-multiple: true
+    - name: Download wheel distributions
+      uses: actions/download-artifact@v4
+      with:
+        pattern: wheels-*
+        path: dist/
+        merge-multiple: true
     - name: Publish distributions to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
 
@@ -231,11 +238,13 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/v')"
     name: Release
     needs: upload
+    permissions:
+      contents: write
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Release a Changelog
-      uses: rasmus-saks/release-a-changelog-action@v1.0.1
+      uses: rasmus-saks/release-a-changelog-action@v1.2.0
       with:
         github-token: '${{ secrets.GITHUB_TOKEN }}'
 
@@ -248,19 +257,19 @@ jobs:
   #   - sdist
   #   - upload
   #   steps:
-  #   - uses: actions/checkout@v3
+  #   - uses: actions/checkout@v4
   #     with:
   #       submodules: true
-  #   - name: Set up Python 3.10
-  #     uses: actions/setup-python@v2
+  #   - name: Set up Python 3.12
+  #     uses: actions/setup-python@v5
   #     with:
-  #       python-version: '3.10'
+  #       python-version: 3.12
   #   - name: Install build dependencies
   #     run: pip install maturin
-  #   - name: Download built wheels
+  #   - name: Download source distribution
   #     uses: actions/download-artifact@v2
   #     with:
-  #         name: wheels
+  #         name: sdist
   #         path: dist
   #   - name: Extract package version
   #     run: echo PKGVER=$(python setup.py --version) >> $GITHUB_ENV
