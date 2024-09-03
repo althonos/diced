@@ -51,19 +51,19 @@ Cython code :
 ..     $ aura -A python-diced
 
 
-.. Piwheels
-.. ^^^^^^^^
+Piwheels
+^^^^^^^^
 
-.. ``diced`` is compatible with Raspberry Pi computers, and pre-built
-.. wheels are compiled for `armv7l` platforms on `piwheels <https://www.piwheels.org>`_.
-.. Run the following command to install these instead of compiling from source:
+``diced`` is compatible with Raspberry Pi computers, and pre-built
+wheels are compiled for `armv7l` platforms on `piwheels <https://www.piwheels.org>`_.
+Run the following command to install these instead of compiling from source:
 
-.. .. code:: console
+.. code:: console
 
-..    $ pip3 install diced --extra-index-url https://www.piwheels.org/simple
+   $ pip3 install diced --extra-index-url https://www.piwheels.org/simple
 
-.. Check the `piwheels documentation <https://www.piwheels.org/faq.html>`_ for
-.. more information.
+Check the `piwheels documentation <https://www.piwheels.org/faq.html>`_ for
+more information.
 
 
 GitHub + ``pip``
