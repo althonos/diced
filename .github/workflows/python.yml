@@ -35,7 +35,7 @@ jobs:
         CIBW_ARCHS: aarch64
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BEFORE_ALL: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh /dev/stdin -y"
-        CIBW_BEFORE_BUILD: "pip install setuptools-rust"
+        CIBW_BEFORE_BUILD: "pip install maturin"
         CIBW_BUILD_VERBOSITY: 2
         CIBW_ENVIRONMENT: CARGO_NET_GIT_FETCH_WITH_CLI=true
         CIBW_TEST_COMMAND: python -m unittest diced.tests
@@ -71,7 +71,7 @@ jobs:
         CIBW_ARCHS: x86_64
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BEFORE_ALL: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh /dev/stdin -y"
-        CIBW_BEFORE_BUILD: "pip install setuptools-rust"
+        CIBW_BEFORE_BUILD: "pip install maturin"
         CIBW_BUILD_VERBOSITY: 2
         CIBW_ENVIRONMENT: CARGO_NET_GIT_FETCH_WITH_CLI=true
         CIBW_TEST_COMMAND: python -m unittest diced.tests
@@ -106,7 +106,7 @@ jobs:
         CIBW_ARCHS: x86_64
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BEFORE_ALL: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh /dev/stdin -y"
-        CIBW_BEFORE_BUILD: "pip install setuptools-rust"
+        CIBW_BEFORE_BUILD: "pip install maturin"
         CIBW_BUILD_VERBOSITY: 2
         CIBW_ENVIRONMENT: CARGO_NET_GIT_FETCH_WITH_CLI=true
         CIBW_TEST_COMMAND: python -m unittest diced.tests
@@ -140,7 +140,7 @@ jobs:
         CIBW_ARCHS: arm64
         CIBW_BUILD: ${{ matrix.python-tag }}
         CIBW_BEFORE_ALL: "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh /dev/stdin -y"
-        CIBW_BEFORE_BUILD: "pip install setuptools-rust"
+        CIBW_BEFORE_BUILD: "pip install maturin"
         CIBW_BUILD_VERBOSITY: 2
         CIBW_ENVIRONMENT: CARGO_NET_GIT_FETCH_WITH_CLI=true
         CIBW_TEST_COMMAND: python -m unittest diced.tests
@@ -175,7 +175,7 @@ jobs:
       env:
         CIBW_ARCHS: AMD64
         CIBW_BUILD: ${{ matrix.python-tag }}
-        CIBW_BEFORE_BUILD: "pip install setuptools-rust"
+        CIBW_BEFORE_BUILD: "pip install maturin"
         CIBW_BUILD_VERBOSITY: 2
         CIBW_TEST_COMMAND: python -m unittest diced.tests
       with:
@@ -260,7 +260,7 @@ jobs:
   #     with:
   #       python-version: '3.10'
   #   - name: Install build dependencies
-  #     run: pip install setuptools-rust
+  #     run: pip install maturin
   #   - name: Download built wheels
   #     uses: actions/download-artifact@v2
   #     with:
