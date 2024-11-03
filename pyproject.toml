@@ -49,6 +49,17 @@ features = ["extension-module"]
 python-source = "diced-py"
 module-name = "diced.lib"
 
+[tool.cibuildwheel]
+skip = ["*-musllinux_i686"]
+before-build = "pip install maturin"
+test-command = "python -m unittest diced.tests -v"
+build-verbosity = 1
+free-threaded-support = false
+
+[tool.cibuildwheel.linux]
+environment = { PATH="$PATH:$HOME/.cargo/bin" }
+before-all = "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh /dev/stdin -y"
+
 [tool.coverage.report]
 show_missing = true
 exclude_lines = [
