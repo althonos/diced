@@ -67,6 +67,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: aarch64-apple-darwin
     - name: Build manylinux wheels
       uses: pypa/cibuildwheel@v2.21.3
       env:

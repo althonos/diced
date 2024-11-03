@@ -6,7 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/diced/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/althonos/diced/compare/v0.1.2...HEAD
+
+
+## [v0.1.2] - 2024-11-04
+[v0.1.2]: https://github.com/althonos/diced/compare/v0.1.1...v0.1.2
+
+### Changed
+- Bump `pyo3` dependency to `v0.22.5`.
+- Use `maturin` to build the Python package.
+- Use PyData theme for the Sphinx documentation of the Python package.
 
 
 ## [v0.1.1] - 2024-06-19

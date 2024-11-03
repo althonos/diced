@@ -1,6 +1,6 @@
 [package]
 name = "diced-py"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Martin Larralde <martin.larralde@embl.de>"]
 edition = "2021"
 license = "GPL-3.0-or-later"
@@ -18,7 +18,7 @@ doctest = false
 
 [dependencies.diced]
 path = "../diced"
-version = "0.1.1"
+version = "0.1.2"
 
 [dependencies.pyo3]
 version = "0.22.5"
