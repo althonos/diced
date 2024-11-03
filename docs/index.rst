@@ -72,18 +72,40 @@ Java code as a reference. It produces exactly the same results as MinCED,
 corrects some bugs, and is much faster. The Diced implementation is available 
 as a Rust library for convenience.
 
-- **no JVM dependency**: diced is distributed as a Python package, so
-  you can add it as a dependency to your project, and stop worrying about the
-  `minced` binary invoking the Java Virtual Machine.
-- **no intermediate files**: Everything happens in memory, in a Python object
-  you control, so you don't have to invoke the MinCED CLI using a sub-process
-  and temporary files, or parse the output GFF.
-- **fast string matching**: The Java implementation uses a handwritten 
-  implementation of the `Boyer-Moore algorithm <https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_string-search_algorithm>`_, 
-  while the Rust implementation uses the ``str::find`` method of the standard 
-  library, which implements the `Two-way algorithm <https://en.wikipedia.org/wiki/Two-way_string-matching_algorithm>`_. 
-  In addition, the ``memchr`` crate can be used as a fast SIMD-capable 
-  implementation of the ``memmem`` function.
+.. grid:: 1 2 3 3
+   :gutter: 1
+
+   .. grid-item-card:: :fas:`battery-full` Batteries-included
+
+      Diced is a Python package, so you can add it as a dependency to your 
+      project, and stop worrying about the `minced` binary invoking the Java 
+      Virtual Machine.
+
+   .. grid-item-card:: :fas:`screwdriver-wrench` Flexible I/O
+
+      Directly pass sequence data as Python `str` objects, and retrieve the 
+      results using an iterator.
+
+   .. grid-item-card:: :fas:`microchip` Fast
+
+      The Java code uses a handwritten implementation of the `Boyer-Moore algorithm <https://en.wikipedia.org/wiki/Boyer%E2%80%93Moore_string-search_algorithm>`_, 
+      while the Rust implementation uses the ``str::find`` method of the standard 
+      library, which uses the `Two-way algorithm <https://en.wikipedia.org/wiki/Two-way_string-matching_algorithm>`_. 
+
+   .. grid-item-card:: :fas:`memory` Memory-efficient
+
+      The Rust code powering Diced is *zero-copy*: it will work without 
+      copying the sequence data from the Python memory space.
+
+   .. grid-item-card:: :fas:`check` Consistent results 
+
+      Get the same results as MinCED ``v0.4.2+10f0a26e``.
+
+   .. grid-item-card:: :fas:`dolly` Pre-built packages
+
+      Get the pre-built wheels from PyPI for a fast installation on a 
+      variety from machines, or compile from source using ``maturin``.
+      
 
 
 Setup

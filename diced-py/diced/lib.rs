@@ -9,6 +9,7 @@ use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PySlice;
 use pyo3::types::PyString;
 
+/// The actual storage for the sequence data.
 #[derive(Debug)]
 struct Sequence {
     data: PyBackedStr,
