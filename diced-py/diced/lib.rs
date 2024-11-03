@@ -9,10 +9,37 @@ use pyo3::pybacked::PyBackedStr;
 use pyo3::types::PySlice;
 use pyo3::types::PyString;
 
+#[derive(Debug)]
+struct Sequence {
+    data: PyBackedStr,
+}
+
+impl From<PyBackedStr> for Sequence {
+    fn from(data: PyBackedStr) -> Self {
+        Self { data }
+    }
+}
+
+impl AsRef<str> for Sequence {
+    fn as_ref(&self) -> &str {
+        self.data.as_ref()
+    }
+}
+
+impl Clone for Sequence {
+    fn clone(&self) -> Self {
+        Self {
+            data: Python::with_gil(|py| {
+                self.data.to_object(py).extract::<PyBackedStr>(py).unwrap()
+            }),
+        }
+    }
+}
+
 /// A sequence region.
 #[pyclass(module = "diced.lib", frozen, subclass)]
 pub struct Region {
-    region: diced::Region<PyBackedStr>,
+    region: diced::Region<Sequence>,
 }
 
 #[pymethods]
@@ -29,7 +56,7 @@ impl Region {
             return Err(PyIndexError::new_err(s.to_object(py)));
         }
         Ok(Region {
-            region: diced::Region::new(sequence, start, end),
+            region: diced::Region::new(Sequence::from(sequence), start, end),
         }
         .into())
     }
@@ -147,7 +174,7 @@ impl Spacers {
 /// A CRISPR region in a nucleotide sequence.
 #[pyclass(module = "diced.lib")]
 pub struct Crispr {
-    crispr: diced::Crispr<PyBackedStr>,
+    crispr: diced::Crispr<Sequence>,
 }
 
 #[pymethods]
@@ -188,7 +215,7 @@ impl Crispr {
 /// A scanner for iterating on the CRISPR regions of a genome.
 #[pyclass(module = "diced.lib")]
 pub struct Scanner {
-    scanner: diced::Scanner<PyBackedStr>,
+    scanner: diced::Scanner<Sequence>,
 }
 
 #[pymethods]
@@ -216,7 +243,7 @@ impl Scanner {
     /// `str`: The genomic sequence being scanned.
     #[getter]
     fn sequence<'py>(&self, py: Python<'py>) -> Py<PyAny> {
-        self.scanner.sequence().clone().to_object(py)
+        self.scanner.sequence().data.to_object(py)
     }
 }
 
@@ -232,7 +259,7 @@ impl Scanner {
 #[pyfunction]
 pub fn scan(sequence: PyBackedStr) -> PyResult<Scanner> {
     let builder = diced::ScannerBuilder::new();
-    let scanner = builder.scan(sequence);
+    let scanner = builder.scan(Sequence::from(sequence));
     Ok(Scanner { scanner })
 }
 
