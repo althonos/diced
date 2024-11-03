@@ -38,7 +38,7 @@ Diced |Stars|
 .. |Source| image:: https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=2678400&style=flat-square
    :target: https://github.com/althonos/diced/
 
-.. |Mirror| image:: https://img.shields.io/badge/mirror-EMBL-009f4d?style=flat-square&maxAge=2678400
+.. |Mirror| image:: https://img.shields.io/badge/mirror-LUMC-001158?style=flat-square&maxAge=2678400
    :target: https://git.lumc.nl/mflarralde/diced/
 
 .. |Issues| image:: https://img.shields.io/github/issues/althonos/diced.svg?style=flat-square&maxAge=600

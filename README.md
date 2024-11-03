@@ -8,7 +8,7 @@
 [![Crate](https://img.shields.io/crates/v/diced.svg?maxAge=600&style=flat-square)](https://crates.io/crates/diced)
 [![Docs](https://img.shields.io/docsrs/diced?maxAge=600&style=flat-square)](https://docs.rs/diced)
 [![Source](https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/diced/)
-[![Mirror](https://img.shields.io/badge/mirror-EMBL-009f4d?style=flat-square&maxAge=2678400)](https://git.lumc.nl/mflarralde/diced/)
+[![Mirror](https://img.shields.io/badge/mirror-LUMC-001158?style=flat-square&maxAge=2678400)](https://git.lumc.nl/mflarralde/diced/)
 [![GitHub issues](https://img.shields.io/github/issues/althonos/diced.svg?style=flat-square&maxAge=600)](https://github.com/althonos/diced/issues)
 [![Changelog](https://img.shields.io/badge/keep%20a-changelog-8A0707.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/diced/blob/master/CHANGELOG.md)
 
