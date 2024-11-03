@@ -90,7 +90,7 @@ Setup
 -----
 
 Run ``pip install diced`` in a shell to download the latest release 
-from PyPi, or have a look at the :doc:`Installation page <install>` to find 
+from PyPi, or have a look at the :doc:`Installation page <guide/install>` to find 
 other ways to install ``diced``.
 
 
@@ -100,10 +100,16 @@ Library
 .. toctree::
    :maxdepth: 2
 
-   Installation <install>
-   Contributing <contributing>
+   User Guide <guide/index>
    API Reference <api/index>
-   Changelog <changes>
+
+
+Related Projects
+----------------
+
+The following Python libraries may be of interest for bioinformaticians.
+
+.. include:: related.rst
 
 
 License
@@ -112,7 +118,8 @@ License
 This library is provided under the `GNU General Public License v3.0 or later <https://choosealicense.com/licenses/gpl-3.0/>`_.
 The code for this implementation was derived from the 
 `MinCED source code <https://github.com/ctSkennerton/minced>`_, which is 
-available under the GPLv3 as well.
+available under the GPLv3 as well. See the 
+:doc:`Copyright Notice <guide/copyright>` section for more information.
 
 *This project is in no way not affiliated, sponsored, or otherwise endorsed by the original MinCED authors. It was was developed by* 
 `Martin Larralde <https://github.com/althonos/>`_ *during his PhD project at the* 

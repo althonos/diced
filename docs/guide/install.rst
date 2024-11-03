@@ -1,13 +1,12 @@
 Installation
 ============
 
-.. note::
+.. caution::
 
-    Wheels are provided for x86-64 Linux, MacOS and Window, as well as Aarch64
-    Linux and MacOS, but other machines will have to build the wheel from the
-    source distribution. Building ``diced`` involves compiling Rust code. If no
-    Rust compiler is available on the local machine, the setup script will
-    setup one to a temporary location.
+    Wheels are provided for Linux, MacOS and Windows x86-64, but other machines 
+    will have to build the wheel from the source distribution. Building ``diced``
+    involves compiling the ``diced`` crate, which requires a Rust compiler to 
+    be available on the local machine.
 
 
 PyPi
@@ -15,25 +14,24 @@ PyPi
 
 ``diced`` is hosted on GitHub, but the easiest way to install it is to download
 the latest release from its `PyPi repository <https://pypi.python.org/pypi/diced>`_.
-It will install all build dependencies then install ``diced``
-either from a wheel if one is available, or from source after compiling the
-Cython code :
+It will install all dependencies then install ``diced`` either from a wheel if
+one is available, or from source after compiling the Rust code :
 
 .. code:: console
 
-   $ pip install --user diced
+    $ pip install --user diced
 
 
 .. Conda
 .. ^^^^^
 
-.. `diced` is also available as a `recipe <https://anaconda.org/bioconda/diced>`_
+.. ``diced`` is also available as a `recipe <https://anaconda.org/bioconda/diced>`_
 .. in the `bioconda <https://bioconda.github.io/>`_ channel. To install, simply
 .. use the ``conda`` installer:
 
 .. .. code:: console
 
-..    $ conda install bioconda::diced
+..      $ conda install -c bioconda diced
 
 
 .. Arch User Repository
@@ -51,18 +49,37 @@ Cython code :
 ..     $ aura -A python-diced
 
 
+.. BioArchLinux
+.. ^^^^^^^^^^^^
+
+.. The `BioArchLinux <https://bioarchlinux.org>`_ project provides pre-compiled packages
+.. based on the AUR recipe. Add the BioArchLinux package repository to ``/etc/pacman.conf``:
+
+.. .. code:: ini
+
+.. ..     [bioarchlinux]
+..     Server = https://repo.bioarchlinux.org/$arch
+
+.. Then install the latest version of the package and its dependencies with ``pacman``:
+
+.. .. code:: console
+
+..     $ pacman -Sy
+..     $ pacman -S python-diced
+
+
 Piwheels
 ^^^^^^^^
 
-``diced`` is compatible with Raspberry Pi computers, and pre-built
-wheels are compiled for `armv7l` platforms on `piwheels <https://www.piwheels.org>`_.
+Diced works on Raspberry Pi computers, and pre-built wheels are compiled 
+for `armv7l` on `piwheels <https://www.piwheels.org/project/diced/>`_.
 Run the following command to install these instead of compiling from source:
 
 .. code:: console
 
    $ pip3 install diced --extra-index-url https://www.piwheels.org/simple
 
-Check the `piwheels documentation <https://www.piwheels.org/faq.html>`_ for
+Check the `piwheels documentation <https://www.piwheels.org/faq.html>`_ for 
 more information.
 
 
@@ -74,8 +91,7 @@ the repository and install the repository by running (with the admin rights):
 
 .. code:: console
 
-   $ git clone --recursive https://github.com/althonos/diced
-   $ pip install --user ./diced
+    $ pip install -U git+https://github.com/althonos/diced
 
 .. caution::
 
@@ -83,19 +99,18 @@ the repository and install the repository by running (with the admin rights):
     which may not even build, so consider using a versioned release instead.
 
 
-GitHub + ``setuptools``
-^^^^^^^^^^^^^^^^^^^^^^^
+GitHub + ``build``
+^^^^^^^^^^^^^^^^^^
 
 If you do not want to use ``pip``, you can still clone the repository and
-run the ``setup.py`` file manually, although you will need to install the
-build dependencies (mainly `Cython <https://pypi.org/project/cython>`_):
+use ``build`` and ``installer`` manually:
 
 .. code:: console
 
-   $ git clone --recursive https://github.com/althonos/diced
-   $ cd diced
-   $ python setup.py build_ext
-   # python setup.py install
+    $ git clone --recursive https://github.com/althonos/diced
+    $ cd diced
+    $ python -m build .
+    # python -m installer dist/*.whl
 
 .. Danger::
 
