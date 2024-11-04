@@ -7,25 +7,24 @@ jobs:
 
   wheel-linux-aarch64:
     name: Build Linux wheels (Aarch64)
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up QEMU
-      id: qemu
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: all
-    - name: Build manylinux wheels
-      uses: pypa/cibuildwheel@v2.21.3
-      env:
-        CIBW_ARCHS: aarch64
-        CIBW_BUILD: 'cp*-manylinux_aarch64'
-      with:
-        output-dir: dist
-    - uses: actions/upload-artifact@v4
-      with:
-        name: wheels-manylinux_aarch64
-        path: dist/*
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: aarch64
+          args: --release --out dist --find-interpreter
+          sccache: 'true'
+          manylinux: auto
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-manylinux_aarch64
+          path: dist
 
   wheel-linux-x86_64:
     name: Build Linux wheels (x86-64)
