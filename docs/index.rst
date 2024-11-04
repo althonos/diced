@@ -6,7 +6,7 @@ Diced |Stars|
 
 *A Rust re-implementation of the* `MinCED <https://github.com/ctSkennerton/minced>`_ *algorithm to Detect Instances of* `CRISPRs <https://en.wikipedia.org/wiki/CRISPR>`_ *in Environmental Data.*
 
-|Actions| |Coverage| |PyPI| |Bioconda| |AUR| |Wheel| |Versions| |Implementations| |License| |Source| |Issues| |Docs| |Changelog| |Downloads|
+|Actions| |Coverage| |PyPI| |Bioconda| |AUR| |Wheel| |Versions| |Implementations| |License| |Source| |Mirror| |Issues| |Docs| |Changelog| |Downloads|
 
 .. |Actions| image:: https://img.shields.io/github/actions/workflow/status/althonos/diced/python.yml?branch=main&logo=github&style=flat-square&maxAge=300
    :target: https://github.com/althonos/diced/actions

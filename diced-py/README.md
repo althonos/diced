@@ -12,6 +12,7 @@
 [![Python Versions](https://img.shields.io/pypi/pyversions/diced.svg?style=flat-square&maxAge=600&logo=python)](https://pypi.org/project/diced/#files)
 [![Python Implementations](https://img.shields.io/pypi/implementation/diced.svg?style=flat-square&maxAge=600&label=impl)](https://pypi.org/project/diced/#files)
 [![Source](https://img.shields.io/badge/source-GitHub-303030.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/diced/)
+[![Mirror](https://img.shields.io/badge/mirror-LUMC-001158?style=flat-square&maxAge=2678400)](https://git.lumc.nl/mflarralde/diced/)
 [![GitHub issues](https://img.shields.io/github/issues/althonos/diced.svg?style=flat-square&maxAge=600)](https://github.com/althonos/diced/issues)
 [![Docs](https://img.shields.io/readthedocs/diced/latest?style=flat-square&maxAge=600)](https://diced.readthedocs.io)
 [![Changelog](https://img.shields.io/badge/keep%20a-changelog-8A0707.svg?maxAge=2678400&style=flat-square)](https://github.com/althonos/diced/blob/main/CHANGELOG.md)
