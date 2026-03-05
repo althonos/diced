@@ -21,12 +21,12 @@ path = "../diced"
 version = "0.1.2"
 
 [dependencies.pyo3]
-version = "0.22.5"
+version = "0.28.1"
 
 [features]
 default = []
 built = []
-extension-module = ["pyo3/extension-module"]
+extension-module = ["pyo3/extension-module", "pyo3/abi3"]
 nightly = ["pyo3/nightly"]
 
 [[test]]

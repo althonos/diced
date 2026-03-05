@@ -30,9 +30,7 @@ impl AsRef<str> for Sequence {
 impl Clone for Sequence {
     fn clone(&self) -> Self {
         Self {
-            data: Python::with_gil(|py| {
-                self.data.to_object(py).extract::<PyBackedStr>(py).unwrap()
-            }),
+            data: Python::attach(|py| self.data.clone_ref(py)),
         }
     }
 }
@@ -53,8 +51,8 @@ impl Region {
         end: usize,
     ) -> PyResult<PyClassInitializer<Self>> {
         if start > end || start > sequence.len() || end > sequence.len() {
-            let s = PySlice::new_bound(py, start as isize, end as isize, 1);
-            return Err(PyIndexError::new_err(s.to_object(py)));
+            let s = PySlice::new(py, start as isize, end as isize, 1).unbind();
+            return Err(PyIndexError::new_err((s,)));
         }
         Ok(Region {
             region: diced::Region::new(Sequence::from(sequence), start, end),
@@ -76,7 +74,7 @@ impl Region {
 
     /// Get the sequence region as a string.
     pub fn __str__<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
-        PyString::new_bound(py, self.region.as_str())
+        PyString::new(py, self.region.as_str())
     }
 }
 
@@ -209,7 +207,7 @@ impl Crispr {
     }
 
     pub fn __str__<'py>(&self, py: Python<'py>) -> Bound<'py, PyString> {
-        PyString::new_bound(py, self.crispr.to_region().as_str())
+        PyString::new(py, self.crispr.to_region().as_str())
     }
 }
 
@@ -235,7 +233,7 @@ impl Scanner {
     ///         without finding new CRISPR regions.
     ///
     fn __next__<'py>(&mut self, py: Python<'py>) -> PyResult<Option<Crispr>> {
-        match py.allow_threads(move || self.scanner.next()) {
+        match py.detach(move || self.scanner.next()) {
             Some(crispr) => Ok(Some(Crispr { crispr })),
             None => Ok(None),
         }
@@ -243,8 +241,13 @@ impl Scanner {
 
     /// `str`: The genomic sequence being scanned.
     #[getter]
-    fn sequence<'py>(&self, py: Python<'py>) -> Py<PyAny> {
-        self.scanner.sequence().data.to_object(py)
+    fn sequence<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyString>> {
+        self.scanner
+            .sequence()
+            .data
+            .clone_ref(py)
+            .into_pyobject(py)
+            .map_err(PyErr::from)
     }
 }
 
