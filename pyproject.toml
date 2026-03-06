@@ -7,7 +7,7 @@ name = "diced"
 dynamic = ["version"]
 description = "Rust re-implementation of the MinCED algorithm to Detect Instances of CRISPRs in Environmental Data."
 readme = 'diced-py/README.md'
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = { file = "COPYING" }
 authors = [
   { name = "Martin Larralde", email = "martin.larralde@embl.de" },
