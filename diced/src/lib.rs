@@ -723,7 +723,7 @@ impl<S: AsRef<str> + Clone> Crispr<S> {
 
     /// Get an iterator over the repeats of the CRISPR region.
     #[inline]
-    pub fn repeats(&self) -> Regions<S> {
+    pub fn repeats<'c>(&'c self) -> Regions<'c, S> {
         Regions::new(self, RegionType::Repeat)
     }
 
@@ -741,7 +741,7 @@ impl<S: AsRef<str> + Clone> Crispr<S> {
 
     /// Get an iterator over the spacers of the CRISPR region.
     #[inline]
-    pub fn spacers(&self) -> Regions<S> {
+    pub fn spacers<'c>(&'c self) -> Regions<'c, S> {
         Regions::new(self, RegionType::Spacer)
     }
 
