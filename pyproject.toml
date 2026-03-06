@@ -54,7 +54,6 @@ skip = ["*-musllinux_i686"]
 before-build = "pip install maturin"
 test-command = "python -m unittest diced.tests -v"
 build-verbosity = 1
-free-threaded-support = false
 
 [tool.cibuildwheel.linux]
 environment = { PATH="$PATH:$HOME/.cargo/bin" }
