@@ -57,6 +57,7 @@ jobs:
       env:
         CIBW_ARCHS: x86_64
         CIBW_BUILD: 'cp*-macosx_x86_64'
+        MACOSX_DEPLOYMENT_TARGET: "10.12"
       with:
         output-dir: dist
     - uses: actions/upload-artifact@v4

@@ -6,7 +6,21 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/diced/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/althonos/diced/compare/v0.1.3...HEAD
+
+
+## [v0.1.3] - 2026-03-06
+[v0.1.3]: https://github.com/althonos/diced/compare/v0.1.2...v0.1.3
+
+### Fixed
+- Project metadata in `pyproject.toml`.
+- Incorrect version in `diced` Python module.
+- Wheels not building for Python 3.14 ([#1](https://github.com/althonos/diced/issues/1)).
+- Warnings due to elided lifetimes in `diced` Rust module.
+
+### Changed
+- Build Python wheels for Python 3.8 Limited API.
+- Bump minimum required Python version to 3.8.
 
 
 ## [v0.1.2] - 2024-11-04
