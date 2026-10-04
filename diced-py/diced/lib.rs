@@ -257,12 +257,34 @@ impl Scanner {
 ///     sequence (`str`): A string containing the genomic sequence to build
 ///         a scanner for.
 ///
+/// Keyword Arguments:
+///     min_repeat_count (`int`): The minimum number of repeats a CRISPR
+///         must contain.
+///     min_repeat_length (`int`): The minimum length of the CRISPR repeats.
+///     max_repeat_length (`int`): The maximum length of the CRISPR repeats.
+///     min_spacer_length (`int`): The minimum length of the CRISPR spacers.
+///     max_spacer_length (`int`): The maximum length of the CRISPR spacers.
+///
 /// Returns:
 ///     `~diced.Scanner`: A scanner yielding CRISPRs in the given contig.
 ///
 #[pyfunction]
-pub fn scan(sequence: PyBackedStr) -> PyResult<Scanner> {
-    let builder = diced::ScannerBuilder::new();
+#[pyo3(signature = (sequence, *, min_repeat_count = 3, min_repeat_length = 23, max_repeat_length = 47, min_spacer_length = 26, max_spacer_length = 50))]
+pub fn scan(
+    sequence: PyBackedStr,
+    min_repeat_count: usize,
+    min_repeat_length: usize,
+    max_repeat_length: usize,
+    min_spacer_length: usize,
+    max_spacer_length: usize,
+) -> PyResult<Scanner> {
+    let mut builder = diced::ScannerBuilder::new();
+    builder
+        .min_repeat_count(min_repeat_count)
+        .min_repeat_length(min_repeat_length)
+        .max_repeat_length(max_repeat_length)
+        .min_spacer_length(min_spacer_length)
+        .max_spacer_length(max_spacer_length);
     let scanner = builder.scan(Sequence::from(sequence));
     Ok(Scanner { scanner })
 }

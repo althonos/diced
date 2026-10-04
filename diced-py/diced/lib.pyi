@@ -38,4 +38,12 @@ class Scanner(typing.Iterator[Crispr]):
     def __iter__(self) -> Scanner: ...
     def __next__(self) -> Crispr: ...
 
-def scan(sequence: str) -> Scanner: ...
+def scan(
+    sequence: str,
+    *,
+    min_repeat_count: int = 3,
+    min_repeat_length: int = 23,
+    max_repeat_length: int = 47,
+    min_spacer_length: int = 26,
+    max_spacer_length: int = 50,
+) -> Scanner: ...
