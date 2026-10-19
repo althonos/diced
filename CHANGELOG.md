@@ -6,10 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [Unreleased]
-[Unreleased]: https://github.com/althonos/diced/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/althonos/diced/compare/v0.1.4...HEAD
+
+## [v0.1.4] - 2026-10-19
+[v0.1.4]: https://github.com/althonos/diced/compare/v0.1.3...v0.1.4
 
 ### Added
-- Keyword arguments to `diced.scan` to set the minimum repeat count and the repeat and spacer length limits, as in `ScannerBuilder`.
+- Keyword arguments to `diced.scan` Python function to set the minimum repeat count and the repeat and spacer length limits, as in `ScannerBuilder` ([#2](https://github.com/althonos/diced/pull/2), by [@nigyta](https://github.com/nigyta)).
 
 
 ## [v0.1.3] - 2026-03-06
